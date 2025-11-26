@@ -89,6 +89,7 @@ flutter:
   assets:
     - lib/assets/logo.png
     - lib/assets/icon.png
+    - shorebird.yaml
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg
