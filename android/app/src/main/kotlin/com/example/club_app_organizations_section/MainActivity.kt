@@ -1,4 +1,4 @@
-package com.khadamat.club_app_organizations_section
+package com.khadamat.clubapporganizationssection
 
 import io.flutter.embedding.android.FlutterActivity
 
