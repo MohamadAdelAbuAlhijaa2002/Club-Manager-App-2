@@ -14,7 +14,10 @@ import 'appScreenOrganizations/notification/notification.dart';
 import 'appScreenOrganizations/sectionsScreen/sectionsScreen.dart';
 import 'bloc/Cubit.dart';
 import 'bloc/states.dart';
+
 //1.1.0
+
+
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 @pragma('vm:entry-point')
@@ -22,18 +25,29 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("Handling a background message: ${message.messageId}");
 }
 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  try {
+    await Firebase.initializeApp();
 
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
 
-  final firebaseNotification = FirebaseNotification();
-  await firebaseNotification.initNotifications();
+    final firebaseNotification = FirebaseNotification();
+    try {
+      await firebaseNotification.initNotifications();
+    } catch (e, st) {
+      print('Notification init error: $e');
+      FirebaseCrashlytics.instance.recordError(e, st);
+    }
 
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-  runApp(MyApp());
+    runApp(MyApp());
+  } catch (e, st) {
+    print("Firebase init error: $e");
+    FirebaseCrashlytics.instance.recordError(e, st);
+  }
 }
 
 class MyApp extends StatefulWidget {
