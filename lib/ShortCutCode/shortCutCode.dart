@@ -200,7 +200,14 @@ Widget iconButton({
 }
 
 Future NavigatorMethod(
-    {required BuildContext context, required Widget screen}) {return Navigator.push(context, MaterialPageRoute(builder: (context) => screen));}
+    {required BuildContext context, required Widget screen})
+{
+
+  return Navigator.of(context).pushReplacement(
+    MaterialPageRoute(builder: (_) => screen),
+  );
+  //return Navigator.push(context, MaterialPageRoute(builder: (context) => screen));
+}
 
 
 

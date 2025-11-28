@@ -214,7 +214,9 @@ class SettingScreens extends StatelessWidget {
                                                   child: Text("لا", style: TextStyle(color: Colors.grey.shade600)),
                                                 ),
                                                 ElevatedButton(
-                                                  onPressed: () => cubit.logOutOrganization(context: context),
+                                                  onPressed: () async{
+                                                    await cubit.logOutOrganization(context: context);
+                                                  },
                                                   style: ElevatedButton.styleFrom(
                                                     backgroundColor: theme.primaryColor,
                                                     shape: RoundedRectangleBorder(

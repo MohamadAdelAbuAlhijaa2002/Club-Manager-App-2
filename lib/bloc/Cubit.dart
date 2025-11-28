@@ -533,9 +533,10 @@ class CubitApp extends Cubit<StatesApp> {
   var dataLogOutOrganization;
   Future logOutOrganization({context}) async
   {
-    deleteTokenOrganization();
 
     var token = await getTokenOrganization();
+    print("token  : $token");
+
     Crud  crud = Crud();
     var res = await crud.getReqH(
       linkLogOutOrganization,
@@ -547,10 +548,10 @@ class CubitApp extends Cubit<StatesApp> {
 
 
     );
+    deleteTokenOrganization();
 
     dataLogOutOrganization  = res ;
     print("res  : ${res}");
-    print("token  : $token");
 
 
       NavigatorMethod(context: context, screen: LoginScreen());
