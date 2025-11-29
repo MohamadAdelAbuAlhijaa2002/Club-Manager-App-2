@@ -65,12 +65,19 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> initApp() async {
-    // أي كود يعتمد Firebase يجب أن يكون بعد initializeApp
-    String? token = await getTokenOrganization();
-    setState(() {
-      _token = token;
-      _loading = false;
-    });
+    try {
+      String? token = await getTokenOrganization();
+      setState(() {
+        _token = token;
+        _loading = false;
+      });
+    } catch (e, st) {
+      FirebaseCrashlytics.instance.recordError(e, st);
+      setState(() {
+        _token = null;
+        _loading = false;
+      });
+    }
   }
 
   @override
@@ -95,11 +102,10 @@ class _MyAppState extends State<MyApp> {
                   ? const Scaffold(
                 body: Center(child: CircularProgressIndicator()),
               )
-                  : _token == null
+                  : (_token == null || cubit.dataCheckToken != true)
                   ? LoginScreen()
-                  : cubit.dataCheckToken
-                  ? SectionScreen()
-                  : LoginScreen(),
+                  : SectionScreen(),
+
             ),
           );
         },

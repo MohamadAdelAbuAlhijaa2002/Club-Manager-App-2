@@ -5,7 +5,10 @@ allprojects {
     }
 }
 
-val newBuildDir: Directory = rootProject.layout.buildDirectory.dir("../../build").get()
+val newBuildDir: Directory =
+    rootProject.layout.buildDirectory
+        .dir("../../build")
+        .get()
 rootProject.layout.buildDirectory.value(newBuildDir)
 
 subprojects {
@@ -21,4 +24,8 @@ tasks.register<Delete>("clean") {
 }
 plugins {
     id("com.google.gms.google-services") version "4.3.15" apply false
+   // id("com.google.firebase:firebase-crashlytics-gradle") version "3.0.6" apply false
+
+
 }
+
