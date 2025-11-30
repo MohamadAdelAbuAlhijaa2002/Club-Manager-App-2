@@ -34,6 +34,7 @@ class StopForgotPasswordState extends StatesApp{}
 class GatInfoOrganizationState extends StatesApp{}
 class CheckSubscriptionsState extends StatesApp{}
 class CheckTokenState extends StatesApp{}
+class TokenValidated extends StatesApp{}
 class GetSectionDataState extends StatesApp{}
 class AddSectionDataState extends StatesApp{}
 class EditSectionTitleState extends StatesApp{}

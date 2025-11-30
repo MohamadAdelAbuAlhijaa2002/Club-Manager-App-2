@@ -4,17 +4,24 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'firebase_options.dart'; // تم إنشاؤه بواسطة FlutterFire CLI
-import 'appScreenOrganizations/loginScren/loginScreen.dart';
-import 'appScreenOrganizations/notification/notificationScreen.dart';
-import 'appScreenOrganizations/sectionsScreen/sectionsScreen.dart';
+
+import 'firebase_options.dart';
 import 'bloc/Cubit.dart';
 import 'bloc/states.dart';
 import 'saveToken/saveToken.dart';
+
+// Screens
+import 'appScreenOrganizations/loginScren/loginScreen.dart';
+import 'appScreenOrganizations/sectionsScreen/sectionsScreen.dart';
+import 'appScreenOrganizations/notification/notificationScreen.dart';
 import 'appScreenOrganizations/notification/notification.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
+
+/// ---------------------
+/// Background Notification Handler
+/// ---------------------
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(
@@ -23,31 +30,38 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("Handling a background message: ${message.messageId}");
 }
 
+
+/// ---------------------
+/// MAIN FUNCTION
+/// ---------------------
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 1. تهيئة Firebase بشكل صحيح لكل منصة
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // 2. تهيئة Crashlytics بعد Firebase
+  // Crashlytics Setup
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
 
-  // 3. إعداد Firebase Messaging
+  // Messaging Background
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  // Init Notifications
   final firebaseNotification = FirebaseNotification();
   try {
     await firebaseNotification.initNotifications();
   } catch (e, st) {
-    print('Notification init error: $e');
     FirebaseCrashlytics.instance.recordError(e, st);
   }
 
-  // 4. تشغيل التطبيق
   runApp(const MyApp());
 }
 
+
+/// ---------------------
+/// MAIN APP WIDGET
+/// ---------------------
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
   @override
@@ -85,9 +99,37 @@ class _MyAppState extends State<MyApp> {
     return BlocProvider(
       create: (_) => CubitApp()..checkTokenData(),
       child: BlocConsumer<CubitApp, StatesApp>(
-        listener: (context, state) {},
+        listener: (context, state) {
+          // ---------------------
+          // انتقال مباشر بعد تسجيل الدخول
+          // ---------------------
+          // if (state is TokenValidated) {
+          //   navigatorKey.currentState?.pushReplacement(
+          //     MaterialPageRoute(builder: (_) => SectionScreen()),
+          //   );
+          // }
+        },
         builder: (context, state) {
           final cubit = CubitApp.get(context);
+
+          // ---------------------
+          // إظهار شاشة تحميل أثناء قراءة التوكن
+          // ---------------------
+          if (_loading) {
+            return MaterialApp(
+              debugShowCheckedModeBanner: false,
+              home: const Scaffold(
+                body: Center(child: CircularProgressIndicator(color: Colors.deepPurple,)),
+              ),
+            );
+          }
+
+          // ---------------------
+          // تحديد شاشة البداية
+          // ---------------------
+          final startScreen = (_token == null || cubit.dataCheckToken != true)
+              ? LoginScreen()
+              : SectionScreen();
 
           return ScreenUtilInit(
             designSize: const Size(375, 812),
@@ -95,17 +137,18 @@ class _MyAppState extends State<MyApp> {
               navigatorKey: navigatorKey,
               debugShowCheckedModeBanner: false,
               locale: const Locale('ar'),
+              theme: ThemeData(
+                pageTransitionsTheme: const PageTransitionsTheme(
+                  builders: {
+                    TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+                    TargetPlatform.android: CupertinoPageTransitionsBuilder(), // يجعل السحب يعمل بنفس سلوك iOS
+                  },
+                ),
+              ),
               routes: {
                 NotificationScreen.routeName: (_) => NotificationScreen(),
               },
-              home: _loading
-                  ? const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
-              )
-                  : (_token == null || cubit.dataCheckToken != true)
-                  ? LoginScreen()
-                  : SectionScreen(),
-
+              home: startScreen,
             ),
           );
         },

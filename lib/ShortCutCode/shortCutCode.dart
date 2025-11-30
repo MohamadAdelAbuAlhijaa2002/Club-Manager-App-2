@@ -203,9 +203,10 @@ Future NavigatorMethod(
     {required BuildContext context, required Widget screen})
 {
 
-  return Navigator.of(context).pushReplacement(
+  return Navigator.of(context).push(
     MaterialPageRoute(builder: (_) => screen),
   );
+
   //return Navigator.push(context, MaterialPageRoute(builder: (context) => screen));
 }
 

@@ -2,6 +2,8 @@
 
 
 
+import 'dart:io';
+
 import 'package:club_app_organizations_section/main.dart';
 import 'package:club_app_organizations_section/appScreenOrganizations/notification/notificationScreen.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -32,6 +34,23 @@ class FirebaseNotification {
     // FCM token
     String? token = await _firebaseMessaging.getToken();
     print("Firebase Token: $token");
+
+
+
+
+
+    if (Platform.isIOS) {
+      String? apnsToken = await _firebaseMessaging.getAPNSToken();
+      print("APNs Token (iOS): $apnsToken");
+
+      token = apnsToken ;
+    }
+
+
+
+
+
+
 
     await _handleBackgroundNotifications();
 

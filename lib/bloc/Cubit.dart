@@ -1698,6 +1698,7 @@ class CubitApp extends Cubit<StatesApp> {
 
     if(token != null) {
       dataCheckToken = res["status"];
+      emit(TokenValidated());
     }else{
       dataCheckToken = false ;
     }
@@ -1709,6 +1710,9 @@ class CubitApp extends Cubit<StatesApp> {
 
 
   }
+
+
+
 
 
 

@@ -64,95 +64,89 @@ class HomePageState extends State<HomePage> {
         builder: (BuildContext context, StatesApp state) {
           final cubit = CubitApp.get(context);
 
-          return WillPopScope(
-            onWillPop: () async {
-              NavigatorMethod(context: context, screen: SectionScreen());
-              return false ;
-            },
-            child: Scaffold(
-              backgroundColor: theme.scaffoldBackgroundColor,
-              body: IndexedStack(
-                index: currentIndex,
-                children: screens,
+          return Scaffold(
+            backgroundColor: theme.scaffoldBackgroundColor,
+            body: IndexedStack(
+              index: currentIndex,
+              children: screens,
+            ),
+
+
+            bottomNavigationBar: Container(
+              margin: EdgeInsets.symmetric(horizontal: displayWidth * 0.05, vertical: displayWidth * 0.02),
+              height: displayWidth * 0.16,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(25),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
+              child: Row(
+                children: List.generate(listOfIcons.length, (index) {
+                  bool isSelected = currentIndex == index;
+                  return Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        setState(() {
+                          currentIndex = index;
+                          HapticFeedback.lightImpact();
+                          CubitApp.get(context).checkTokenData();
+                          if(!CubitApp.get(context).dataCheckToken){
+                            deleteTokenOrganization();
+                            NavigatorMethod(context: context, screen: LoginScreen());
 
-
-              bottomNavigationBar: Container(
-                margin: EdgeInsets.symmetric(horizontal: displayWidth * 0.05, vertical: displayWidth * 0.02),
-                height: displayWidth * 0.16,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(25),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: List.generate(listOfIcons.length, (index) {
-                    bool isSelected = currentIndex == index;
-                    return Expanded(
-                      child: InkWell(
-                        onTap: () {
-                          setState(() {
-                            currentIndex = index;
-                            HapticFeedback.lightImpact();
-                            CubitApp.get(context).checkTokenData();
-                            if(!CubitApp.get(context).dataCheckToken){
-                              deleteTokenOrganization();
-                              NavigatorMethod(context: context, screen: LoginScreen());
-
-                            if (cubit.checkSubscriptionsBool) {
-                              if (index == 0) {
-                                CubitApp.get(context).getMembersData(section_id: id_section);
-                              } else if (index == 1) {
-                                CubitApp.get(context).getSubscriptionsMember(section_id: id_section);
-                                CubitApp.get(context).getSubscriptionsType();
-                              } else {
-                                CubitApp.get(context).getSuspendMembersData(section_id: id_section);
-                              }
+                          if (cubit.checkSubscriptionsBool) {
+                            if (index == 0) {
+                              CubitApp.get(context).getMembersData(section_id: id_section);
+                            } else if (index == 1) {
+                              CubitApp.get(context).getSubscriptionsMember(section_id: id_section);
+                              CubitApp.get(context).getSubscriptionsType();
                             } else {
-                              NavigatorMethod(context: context, screen: MassageScreens());
+                              CubitApp.get(context).getSuspendMembersData(section_id: id_section);
                             }
+                          } else {
+                            NavigatorMethod(context: context, screen: MassageScreens());
+                          }
 
 
 
-                            }
+                          }
 
 
-                          });
-                        },
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              listOfIcons[index],
-                              size: displayWidth * 0.065,
+                        });
+                      },
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            listOfIcons[index],
+                            size: displayWidth * 0.065,
+                            color: isSelected ?  Colors.purple.shade800 : Colors.grey.shade500,
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            listOfStrings[index],
+                            style: TextStyle(
+                              fontSize: displayWidth * 0.028,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                               color: isSelected ?  Colors.purple.shade800 : Colors.grey.shade500,
                             ),
-                            const SizedBox(height: 5),
-                            Text(
-                              listOfStrings[index],
-                              style: TextStyle(
-                                fontSize: displayWidth * 0.028,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                                color: isSelected ?  Colors.purple.shade800 : Colors.grey.shade500,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    );
-                  }),
-                ),
+                    ),
+                  );
+                }),
               ),
-
-
-
             ),
+
+
+
           );
         },
       ),

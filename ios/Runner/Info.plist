@@ -45,5 +45,42 @@
     <true/>
     <key>UIApplicationSupportsIndirectInputEvents</key>
     <true/>
+
+
+
+
+
+
+
+
+
+    <key>CFBundleURLTypes</key>
+    <array>
+      <dict>
+        <key>CFBundleTypeRole</key>
+        <string>Editor</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+          <!-- Encoded App ID من Firebase -->
+          <string>app-1-563950462964-ios-a42d70b510fffff032bba1</string>
+          <!-- REVERSED_CLIENT_ID من GoogleService-Info.plist -->
+          <string>com.googleusercontent.apps.563950462964-26pdp2v7lj3166lil9qu0kbj3a7k91dc</string>
+          <!-- Bundle Identifier -->
+          <string>com.khadamat.clubapporganizationssection</string>
+        </array>
+      </dict>
+    </array>
+
+
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>fetch</string>
+        <string>remote-notification</string>
+    </array>
+
+
+
+
+
   </dict>
 </plist>

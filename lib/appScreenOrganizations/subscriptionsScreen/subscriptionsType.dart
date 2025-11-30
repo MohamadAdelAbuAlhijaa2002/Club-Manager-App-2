@@ -177,6 +177,8 @@ class _SubscriptionsTypeState extends State<SubscriptionsType> {
 
           return Scaffold(
             appBar: AppBar(
+              automaticallyImplyLeading: false,
+
               title: Text(
                 "أنواع الاشتراكات",
                 style: TextStyle(
