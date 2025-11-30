@@ -127,9 +127,6 @@ class _MyAppState extends State<MyApp> {
           // ---------------------
           // تحديد شاشة البداية
           // ---------------------
-          final startScreen = (_token == null || cubit.dataCheckToken != true)
-              ? LoginScreen()
-              : SectionScreen();
 
           return ScreenUtilInit(
             designSize: const Size(375, 812),
@@ -148,7 +145,9 @@ class _MyAppState extends State<MyApp> {
               routes: {
                 NotificationScreen.routeName: (_) => NotificationScreen(),
               },
-              home: startScreen,
+              home: (_token == null)
+                  ? LoginScreen()
+                  : SectionScreen(),
             ),
           );
         },
