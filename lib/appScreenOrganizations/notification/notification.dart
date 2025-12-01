@@ -32,15 +32,14 @@ class FirebaseNotification {
     );
 
     if (permissionRequest.authorizationStatus == AuthorizationStatus.authorized) {
-      String? fcmToken;
 
       if (Platform.isIOS) {
          apnsToken = await FirebaseMessaging.instance.getAPNSToken();
 
         if (apnsToken != null) {
           debugPrint("APNS Token: $apnsToken");
-          fcmToken = await FirebaseMessaging.instance.getToken();
-          debugPrint("FCM Token: $fcmToken");
+          apnsToken = await FirebaseMessaging.instance.getToken();
+          debugPrint("FCM Token: $apnsToken");
         } else {
           debugPrint("APNS Token not available, waiting ...");
 
@@ -54,13 +53,13 @@ class FirebaseNotification {
 
           if (apnsToken != null) {
             debugPrint("APNS Token: $apnsToken");
-            fcmToken = await FirebaseMessaging.instance.getToken();
-            debugPrint("FCM Token: $fcmToken");
+            apnsToken = await FirebaseMessaging.instance.getToken();
+            debugPrint("FCM Token: $apnsToken");
           } else {
             debugPrint("APNS Token not available, trying to get FCM token anyway ...");
 
             try {
-              fcmToken = await FirebaseMessaging.instance.getToken();
+              apnsToken = await FirebaseMessaging.instance.getToken();
             } catch (err) {
               debugPrint("FCM Token not available ($err)");
             }
@@ -68,8 +67,8 @@ class FirebaseNotification {
         }
 
       } else {
-        fcmToken = await FirebaseMessaging.instance.getToken();
-        debugPrint("FCM Token: $fcmToken");
+        apnsToken = await FirebaseMessaging.instance.getToken();
+        debugPrint("FCM Token: $apnsToken");
       }
     } else {
       debugPrint("Notifications not authorized");
