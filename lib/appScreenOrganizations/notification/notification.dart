@@ -13,7 +13,15 @@ class FirebaseNotification {
   Future<String?> initNotifications() async {
     String? token;
 
-    await _firebaseMessaging.requestPermission(alert: true, badge: true, sound: true);
+    await _firebaseMessaging.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
 
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iOSInit = DarwinInitializationSettings();
@@ -24,7 +32,6 @@ class FirebaseNotification {
           navigatorKey.currentState?.pushNamed(NotificationScreen.routeName);
         });
 
-    if (Platform.isIOS) {
       token = await _firebaseMessaging.getToken();
       print("iOS FCM Token: $token");
       if(token == null) {
@@ -32,10 +39,6 @@ class FirebaseNotification {
         print("APNs Token (iOS): $apnsToken");
         token = apnsToken ;
       }
-    } else {
-      token = await _firebaseMessaging.getToken();
-      print("Android FCM Token: $token");
-    }
 
     _listenTokenRefresh();
     _handleBackgroundNotifications();

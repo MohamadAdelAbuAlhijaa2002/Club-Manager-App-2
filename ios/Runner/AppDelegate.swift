@@ -1,33 +1,13 @@
-// Source - https://stackoverflow.com/a
-// Posted by Mntimande
-// Retrieved 2025-12-01, License - CC BY-SA 4.0
-
-import UIKit
 import Flutter
-import FirebaseCore
-import FirebaseMessaging
+import UIKit
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
   override func application(
-    _ application: UIApplication ,
+    _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    FirebaseApp.configure()
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
-  override func application(_ application: UIApplication,
-    didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-
-    // تحقق أن FirebaseApp مهيأ
-    if FirebaseApp.app() != nil {
-      Messaging.messaging().apnsToken = deviceToken
-    }
-
-    super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
-  }
-
-
-
 }
