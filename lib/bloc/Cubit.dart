@@ -132,46 +132,42 @@ class CubitApp extends Cubit<StatesApp> {
 
 
   var dataLogin = {} ;
-  Future loginOrganization({email, password} ) async {
-    print("res  sssssssssssssssssssssss");
+  Future loginOrganization({email, password}) async {
+    print("res sssssssssssssssssssssss");
 
-    Crud  crud = Crud();
+    Crud crud = Crud();
     var res = await crud.postReq(linkLogInOrganization, {
-      "email" : email,
-      "password" : password
+      "email": email,
+      "password": password
     });
-    dataLogin = res ;
+
+    dataLogin = res;
     print("res : $res");
 
-    if(res["status"] == "success") {
-      saveTokenOrganization(res["data"]["manager_data"]["token"]);
-      saveRoleOrganization(res["data"]["manager_data"]["role"]);
-
-
-
-
-
-
-
+    if (res["status"] == "success") {
+      await saveTokenOrganization(res["data"]["manager_data"]["token"]);
+      await saveRoleOrganization(res["data"]["manager_data"]["role"]);
 
       var token = await getTokenOrganization();
 
-
-      var fcmToken = await FirebaseNotification().initNotifications();
-      print("token in Cubit login : $fcmToken");
-      if(fcmToken != null) {
-        var resFcm = await crud.postReqH(
-            linkSaveFcmToken,
-            headers: {
-              'Authorization': 'Bearer $token',
-              // ⚠️ مهم: "Bearer" ومسافة والتوكن
-              'Accept': 'application/json',
-            },
-
-            {
-              "fcmToken": "$fcmToken"
-            }
-        );
+      try {
+        var fcmToken = await FirebaseNotification().initNotifications();
+        print("token in Cubit login : $fcmToken");
+        if (fcmToken != null) {
+          await crud.postReqH(
+              linkSaveFcmToken,
+              headers: {
+                'Authorization': 'Bearer $token',
+                'Accept': 'application/json',
+              },
+              {
+                "fcmToken": "$fcmToken"
+              }
+          );
+        }
+      } catch (e) {
+        print("Error initializing FCM token: $e");
+        // الاستمرار حتى لو فشل FCM
       }
 
       emit(LoginOrganizationSuccessState());
@@ -183,11 +179,9 @@ class CubitApp extends Cubit<StatesApp> {
 
     print("token: ${t == null}");
     print("r: $r");
-    print("res  login data  : $res");
+    print("res login data : $res");
+
     emit(LoginOrganizationState());
-
-
-
   }
 
 

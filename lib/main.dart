@@ -48,6 +48,10 @@ void main() async {
   // Background FCM Handler
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
+  await FirebaseNotification().initNotifications();
+
+
+
   runApp(const MyApp());
 }
 

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../../main.dart';
@@ -10,10 +11,17 @@ class FirebaseNotification {
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
   FlutterLocalNotificationsPlugin();
 
-  Future<String?> initNotifications() async {
-    String? token;
 
-    await _firebaseMessaging.requestPermission(
+
+  // Source - https://stackoverflow.com/q
+// Posted by Patrick
+// Retrieved 2025-12-01, License - CC BY-SA 4.0
+
+   initNotifications() async {
+     String? apnsToken ;
+    await FirebaseMessaging.instance.setAutoInitEnabled(true);
+
+    final permissionRequest = await FirebaseMessaging.instance.requestPermission(
       alert: true,
       announcement: false,
       badge: true,
@@ -23,35 +31,60 @@ class FirebaseNotification {
       sound: true,
     );
 
-    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const iOSInit = DarwinInitializationSettings();
-    const initSettings = InitializationSettings(android: androidInit, iOS: iOSInit);
+    if (permissionRequest.authorizationStatus == AuthorizationStatus.authorized) {
+      String? fcmToken;
 
-    await _flutterLocalNotificationsPlugin.initialize(initSettings,
-        onDidReceiveNotificationResponse: (payload) {
-          navigatorKey.currentState?.pushNamed(NotificationScreen.routeName);
-        });
+      if (Platform.isIOS) {
+         apnsToken = await FirebaseMessaging.instance.getAPNSToken();
 
-      token = await _firebaseMessaging.getToken();
-      print("iOS FCM Token: $token");
-      if(token == null) {
-        String? apnsToken = await _firebaseMessaging.getAPNSToken();
-        print("APNs Token (iOS): $apnsToken");
-        token = apnsToken ;
+        if (apnsToken != null) {
+          debugPrint("APNS Token: $apnsToken");
+          fcmToken = await FirebaseMessaging.instance.getToken();
+          debugPrint("FCM Token: $fcmToken");
+        } else {
+          debugPrint("APNS Token not available, waiting ...");
+
+          await Future<void>.delayed(
+            const Duration(
+              seconds: 3,
+            ),
+          );
+
+          apnsToken = await FirebaseMessaging.instance.getAPNSToken();
+
+          if (apnsToken != null) {
+            debugPrint("APNS Token: $apnsToken");
+            fcmToken = await FirebaseMessaging.instance.getToken();
+            debugPrint("FCM Token: $fcmToken");
+          } else {
+            debugPrint("APNS Token not available, trying to get FCM token anyway ...");
+
+            try {
+              fcmToken = await FirebaseMessaging.instance.getToken();
+            } catch (err) {
+              debugPrint("FCM Token not available ($err)");
+            }
+          }
+        }
+
+      } else {
+        fcmToken = await FirebaseMessaging.instance.getToken();
+        debugPrint("FCM Token: $fcmToken");
       }
+    } else {
+      debugPrint("Notifications not authorized");
+    }
 
-    _listenTokenRefresh();
-    _handleBackgroundNotifications();
 
-    FirebaseMessaging.onMessage.listen((message) {
-      if (message.notification != null) {
-        _showLocalNotification(
-            message.notification!.title ?? '', message.notification!.body ?? '');
-      }
-    });
 
-    return token;
+    return apnsToken ;
   }
+
+
+
+
+
+
 
   void _listenTokenRefresh() {
     FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {

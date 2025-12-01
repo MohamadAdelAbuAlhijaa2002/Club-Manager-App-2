@@ -249,11 +249,11 @@ class LoginScreen extends StatelessWidget {
                                             await cubit.checkSubscriptions(
                                                 context: context);
 
-                                            // if (cubit.checkSubscriptionsBool) {
-                                            //   NavigatorMethod(
-                                            //       context: context,
-                                            //       screen: SectionScreen());
-                                            // }
+                                            if (cubit.checkSubscriptionsBool) {
+                                              NavigatorMethod(
+                                                  context: context,
+                                                  screen: SectionScreen());
+                                            }
 
                                             cubit.showLoadingFun(i: false);
                                           } else {
