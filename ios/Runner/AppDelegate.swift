@@ -1,5 +1,5 @@
-import Flutter
 import UIKit
+import Flutter
 import Firebase
 import FirebaseMessaging
 
@@ -10,29 +10,28 @@ import FirebaseMessaging
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    FirebaseApp.configure()
+
+    if FirebaseApp.app() == nil {
+        FirebaseApp.configure()
+    }
 
     GeneratedPluginRegistrant.register(with: self)
+
     UNUserNotificationCenter.current().delegate = self
-    application.registerForRemoteNotifications()
+
+    UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
+      DispatchQueue.main.async {
+        application.registerForRemoteNotifications()
+      }
+    }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
-  // تسجيل الجهاز للحصول على APNs token
   override func application(
     _ application: UIApplication,
     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
   ) {
     Messaging.messaging().apnsToken = deviceToken
-    super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
-  }
-
-  // معالجة فشل تسجيل الجهاز (اختياري لكنه مهم)
-  override func application(
-    _ application: UIApplication,
-    didFailToRegisterForRemoteNotificationsWithError error: Error
-  ) {
-    print("Failed to register for remote notifications: \(error)")
   }
 }
