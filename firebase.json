@@ -1,1 +1,4 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"clubnotification-c0a25","appId":"1:563950462964:android:694618a9a5c4bddf32bba1","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"clubnotification-c0a25","configurations":{"android":"1:563950462964:android:694618a9a5c4bddf32bba1","ios":"1:563950462964:ios:a42d70b510fffff032bba1"}}}}}}
+{"flutter":{"platforms":{"android":{"default":{"projectId":"clubnotification-c0a25","appId":"1:563950462964:android:694618a9a5c4bddf32bba1","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"clubnotification-c0a25","configurations":{"android":"1:563950462964:android:694618a9a5c4bddf32bba1","ios":"1-563950462964-ios-a42d70b510fffff032bba1"}}}}}}
+
+
+
