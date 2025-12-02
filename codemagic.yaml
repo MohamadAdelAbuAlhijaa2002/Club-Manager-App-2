@@ -1,0 +1,32 @@
+workflows:
+  ios-release:
+    name: iOS Release Build
+    environment:
+      groups:
+        - ios_credentials
+      vars:
+        FIREBASE_APP_ID: "1-563950462964-ios-a42d70b510fffff032bba1"
+        FIREBASE_PROJECT_ID: "clubnotification-c0a25"
+        GOOGLE_APPLICATION_CREDENTIALS: Encrypted(GOOGLE_APPLICATION_CREDENTIALS)
+
+    scripts:
+      - name: Install Firebase CLI
+        script: |
+          curl -sL https://firebase.tools | bash
+
+      - name: Install Flutter dependencies
+        script: |
+          flutter pub get
+
+      - name: Build IPA
+        script: |
+          flutter build ipa --release
+
+      - name: Upload to Firebase App Distribution
+        script: |
+          export GOOGLE_APPLICATION_CREDENTIALS="$GOOGLE_APPLICATION_CREDENTIALS"
+          firebase appdistribution:distribute build/ios/ipa/Runner.ipa \
+            --app "$FIREBASE_APP_ID" \
+            --project "$FIREBASE_PROJECT_ID" \
+            --release-notes "iOS Test Release" \
+            --groups "testers"
