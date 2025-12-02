@@ -1,4 +1,3 @@
-import 'package:club_app_organizations_section/testNotfoication.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -10,8 +9,6 @@ import 'firebase_options.dart';
 import 'bloc/Cubit.dart';
 import 'bloc/states.dart';
 import 'saveToken/saveToken.dart';
-
-// Screens
 import 'appScreenOrganizations/loginScren/loginScreen.dart';
 import 'appScreenOrganizations/sectionsScreen/sectionsScreen.dart';
 import 'appScreenOrganizations/notification/notificationScreen.dart';
@@ -19,10 +16,6 @@ import 'appScreenOrganizations/notification/notification.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-
-/// ---------------------
-/// Background Notification Handler (app terminated)
-/// ---------------------
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(
@@ -31,39 +24,24 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("🔔 Background message: ${message.messageId}");
 }
 
-
-/// ---------------------
-/// MAIN FUNCTION
-/// ---------------------
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
 
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
-    );    print("Firebase initialized successfully");
+    );
+    print("Firebase initialized successfully");
   } catch (e) {
     print("Firebase initialization failed: $e");
   }
 
-  // Crashlytics
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-
-  // Background FCM Handler
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-  await FirebaseNotification().initNotifications();
-
-
 
   runApp(const MyApp());
 }
 
-
-/// ---------------------
-/// MAIN APP WIDGET
-/// ---------------------
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
   @override
@@ -80,18 +58,27 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
 
-    // تشغيل إشعارات Firebase بعد تشغيل الواجهة
-    firebaseNotification.initNotifications();
-
-    // تحميل توكن المستخدم (login)
+    initNotificationsAndToken();
     initApp();
+  }
+
+  /// طلب الإشعارات وانتظار FCM token قبل الاستخدام
+  Future<void> initNotificationsAndToken() async {
+    String? token = await firebaseNotification.initNotifications();
+    debugPrint("Initialized FCM token: $token");
+    setState(() {
+      _token = token;
+    });
+
+    firebaseNotification.listenTokenRefresh();
+    firebaseNotification.handleBackgroundMessages();
   }
 
   Future<void> initApp() async {
     try {
-      String? token = await getTokenOrganization();
+      String? savedToken = await getTokenOrganization();
       setState(() {
-        _token = token;
+        _token ??= savedToken; // استخدم توكن FCM إذا لم يصل بعد
         _loading = false;
       });
     } catch (e, st) {
@@ -110,26 +97,17 @@ class _MyAppState extends State<MyApp> {
       child: BlocConsumer<CubitApp, StatesApp>(
         listener: (context, state) {},
         builder: (context, state) {
-          final cubit = CubitApp.get(context);
-
-          // ---------------------
-          // شاشة تحميل أثناء قراءة التوكن
-          // ---------------------
           if (_loading) {
             return MaterialApp(
               debugShowCheckedModeBanner: false,
               home: const Scaffold(
                 body: Center(
-                    child: CircularProgressIndicator(
-                      color: Colors.deepPurple,
-                    )),
+                  child: CircularProgressIndicator(color: Colors.deepPurple),
+                ),
               ),
             );
           }
 
-          // ---------------------
-          // التطبيق الرئيسي
-          // ---------------------
           return ScreenUtilInit(
             designSize: const Size(375, 812),
             builder: (_, __) => MaterialApp(
@@ -147,9 +125,7 @@ class _MyAppState extends State<MyApp> {
               routes: {
                 NotificationScreen.routeName: (_) => NotificationScreen(),
               },
-              home: (_token == null)
-                  ? LoginScreen()
-                  : SectionScreen(),
+              home: (_token == null) ? LoginScreen() : SectionScreen(),
             ),
           );
         },

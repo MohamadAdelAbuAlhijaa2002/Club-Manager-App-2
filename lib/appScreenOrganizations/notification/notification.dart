@@ -1,14 +1,14 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../../main.dart';
 import 'notificationScreen.dart';
 
-
 class FirebaseNotification {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
+  /// تهيئة الإشعارات
   Future<String?> initNotifications() async {
     // طلب إذن الإشعارات
     final settings = await _messaging.requestPermission(
@@ -17,51 +17,49 @@ class FirebaseNotification {
       sound: true,
     );
 
+    if (settings.authorizationStatus == AuthorizationStatus.denied) {
+      debugPrint("User declined notifications");
+      return "null User declined notifications";
+    }
 
-    if(Platform.isIOS ){
-      if(settings.authorizationStatus == AuthorizationStatus.authorized){
-     // الحصول على Token الجهاز (استخدمه لإرسال إشعارات اختبارية)
-      String? token = await _messaging.getToken();
-      print("FCM Token: $token");
-
-      // معالجة الإشعارات عندما يكون التطبيق مفتوحًا
-      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        print('Received message: ${message.notification?.title}');
-        // يمكنك عرض إشعار محلي هنا باستخدام حزمة مثل flutter_local_notifications
+    // iOS: الانتظار لوصول APNs token قبل استدعاء getToken()
+    if (Platform.isIOS) {
+      // الاستماع للـ FCM token الذي يضمن وصول APNs token
+      final tokenCompleter = Completer<String?>();
+      _messaging.onTokenRefresh.listen((newToken) {
+        debugPrint("FCM Token refreshed: $newToken");
+        if (!tokenCompleter.isCompleted) tokenCompleter.complete(newToken);
       });
 
-      return token ;
-      }else{
-        return "Permission denied not AuthorizationStatus";
+      // محاولة الحصول على التوكين الحالي
+      String? token = await _messaging.getToken();
+      if (token != null) {
+        debugPrint("FCM Token: $token");
+        tokenCompleter.complete(token);
       }
+
+      return tokenCompleter.future;
     }
 
-
-
-
-    if (settings.authorizationStatus != AuthorizationStatus.authorized &&
-        settings.authorizationStatus != AuthorizationStatus.provisional) {
-      debugPrint("User declined notifications");
-      return null;
-    }
-
-    // الحصول على FCM Token
+    // Android: مباشرة الحصول على FCM token
     try {
       String? token = await _messaging.getToken();
       debugPrint("FCM Token: $token");
       return token;
     } catch (e) {
       debugPrint("Error getting FCM Token: $e");
-      return null;
+      return "null of token ";
     }
   }
 
+  /// الاستماع لتحديث الـ token لاحقًا
   void listenTokenRefresh() {
     _messaging.onTokenRefresh.listen((newToken) {
       debugPrint("FCM Token refreshed: $newToken");
     });
   }
 
+  /// التعامل مع الإشعارات عند فتح التطبيق
   void handleBackgroundMessages() {
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
     _messaging.getInitialMessage().then(_handleMessage);

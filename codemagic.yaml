@@ -10,18 +10,32 @@ workflows:
         GOOGLE_APPLICATION_CREDENTIALS: Encrypted(GOOGLE_APPLICATION_CREDENTIALS)
 
     scripts:
+      # تثبيت Firebase CLI
       - name: Install Firebase CLI
         script: |
           curl -sL https://firebase.tools | bash
 
+      # تثبيت dependencies الخاصة بFlutter
       - name: Install Flutter dependencies
         script: |
           flutter pub get
 
+      # التحقق من capabilities (Push Notifications و Background Modes)
+      - name: Verify iOS Capabilities
+        script: |
+          echo "Checking iOS capabilities for Push Notifications..."
+          if ! grep -q "<key>aps-environment</key>" ios/Runner/Info.plist; then
+            echo "⚠️ Warning: Push Notifications capability not set in Info.plist"
+            exit 1
+          fi
+          echo "✅ Push Notifications capability found"
+
+      # بناء IPA نسخة release
       - name: Build IPA
         script: |
           flutter build ipa --release
 
+      # رفع التطبيق إلى Firebase App Distribution
       - name: Upload to Firebase App Distribution
         script: |
           export GOOGLE_APPLICATION_CREDENTIALS="$GOOGLE_APPLICATION_CREDENTIALS"
