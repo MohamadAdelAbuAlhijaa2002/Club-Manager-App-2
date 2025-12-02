@@ -169,7 +169,7 @@ class CubitApp extends Cubit<StatesApp> {
         // الاستمرار حتى لو فشل FCM
       }
 
-      emit(LoginOrganizationSuccessState());
+     // emit(LoginOrganizationSuccessState());
 
     }
 

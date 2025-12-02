@@ -10,12 +10,15 @@ import Firebase
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
 
-
+    FirebaseApp.configure() // ضروري
 
     GeneratedPluginRegistrant.register(with: self)
 
-    // تعيين delegate لإشعارات الـ Push
     UNUserNotificationCenter.current().delegate = self
+
+
+
+    application.registerForRemoteNotifications() // لتسجيل الجهاز لدى APNs
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
