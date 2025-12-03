@@ -2,7 +2,7 @@ workflows:
   ios-release:
     name: iOS Release Build
     environment:
-      flutter: stable            # يمنع إعادة تحميل Flutter كل مرة
+      flutter: stable
 
       groups:
         - ios_credentials
@@ -11,9 +11,11 @@ workflows:
         FIREBASE_APP_ID: "1-563950462964-ios-a42d70b510fffff032bba1"
         FIREBASE_PROJECT_ID: "clubnotification-c0a25"
         GOOGLE_APPLICATION_CREDENTIALS_JSON: Encrypted(GOOGLE_APPLICATION_CREDENTIALS_JSON)
+        APNS_KEY_ID: Encrypted(APNS_KEY_ID)
+        APNS_TEAM_ID: Encrypted(APNS_TEAM_ID)
+        APNS_AUTH_KEY: Encrypted(APNS_AUTH_KEY)
 
     cache:
-      cache_default_paths: true
       cache_paths:
         - $HOME/.pub-cache
         - ios/Pods
@@ -22,7 +24,6 @@ workflows:
         - build/
 
     scripts:
-      # 1. تثبيت Firebase CLI (مرة واحدة فقط)
       - name: Install Firebase CLI
         script: |
           if ! command -v firebase &> /dev/null; then
@@ -32,56 +33,79 @@ workflows:
             echo "Firebase CLI already installed."
           fi
 
-      # 2. تثبيت Flutter dependencies
       - name: Install Flutter dependencies
         script: |
           flutter pub get
 
-      # 3. تسريع CocoaPods عبر caching
       - name: Install iOS Pods
         script: |
           cd ios
           pod install --repo-update
           cd ..
 
-      # 4. التحقق من قدرات iOS
       - name: Verify iOS Capabilities
         script: |
-          echo "Checking Push Notifications capability..."
+          echo "Checking Push Notifications capability in Info.plist..."
           if ! plutil -p ios/Runner/Info.plist | grep -q "aps-environment"; then
-            echo "⚠️ Push Notifications capability not set in Info.plist"
+            echo "⚠️ aps-environment not set in Info.plist"
             exit 1
           fi
-          echo "✅ Push Notifications capability found"
+          echo "✅ aps-environment found"
 
           echo "Checking Background Modes (remote-notification)..."
           if ! plutil -p ios/Runner/Info.plist | grep -q "remote-notification"; then
-            echo "⚠️ Background Modes (remote-notification) not set"
+            echo "⚠️ Background Modes not set"
             exit 1
           fi
-          echo "✅ Background Modes capability found"
+          echo "✅ Background Modes found"
 
-      # 5. بناء IPA نسخة release
+          echo "Checking Runner.entitlements for Push Notifications..."
+          if [ -f ios/Runner/Runner.entitlements ]; then
+            if ! plutil -p ios/Runner/Runner.entitlements | grep -q "aps-environment"; then
+              echo "⚠️ aps-environment not set in Runner.entitlements"
+              exit 1
+            fi
+            echo "✅ Runner.entitlements OK"
+          else
+            echo "⚠️ Runner.entitlements file not found"
+            exit 1
+          fi
+
       - name: Build IPA
         script: |
           flutter build ipa --release
           IPA_PATH="build/ios/ipa/Runner.ipa"
           if [ ! -f "$IPA_PATH" ]; then
-            echo "❌ IPA file not found at $IPA_PATH"
+            echo "❌ IPA not found"
             exit 1
           fi
           echo "✅ IPA built at $IPA_PATH"
 
-      # 6. رفع التطبيق إلى Firebase App Distribution
       - name: Upload to Firebase App Distribution
         script: |
-          echo "Setting up Firebase Service Account..."
+          echo "Checking GOOGLE_APPLICATION_CREDENTIALS_JSON..."
+          if [ -z "$GOOGLE_APPLICATION_CREDENTIALS_JSON" ]; then
+            echo "❌ GOOGLE_APPLICATION_CREDENTIALS_JSON is not set!"
+            exit 1
+          fi
+          echo "✅ GOOGLE_APPLICATION_CREDENTIALS_JSON is set"
+
           echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > service-account.json
           export GOOGLE_APPLICATION_CREDENTIALS="$(pwd)/service-account.json"
 
-          echo "Uploading IPA to Firebase..."
+          IPA_PATH="build/ios/ipa/Runner.ipa"
+          if [ ! -f "$IPA_PATH" ]; then
+            echo "❌ IPA not found"
+            exit 1
+          fi
+          echo "✅ IPA found at $IPA_PATH"
+
+          echo "Uploading IPA to Firebase App Distribution..."
           firebase appdistribution:distribute "$IPA_PATH" \
             --app "$FIREBASE_APP_ID" \
             --project "$FIREBASE_PROJECT_ID" \
             --release-notes "iOS Test Release" \
             --groups "clubIos"
+
+          rm service-account.json
+      

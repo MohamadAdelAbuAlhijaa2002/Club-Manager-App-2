@@ -1,39 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-  <dict>
+<dict>
+
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
+
     <key>CFBundleDisplayName</key>
     <string>Club</string>
+
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
+
     <key>CFBundleIdentifier</key>
     <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
+
     <key>CFBundleName</key>
     <string>Club</string>
+
     <key>CFBundlePackageType</key>
     <string>APPL</string>
+
     <key>CFBundleShortVersionString</key>
     <string>$(FLUTTER_BUILD_NAME)</string>
+
     <key>CFBundleSignature</key>
     <string>????</string>
+
     <key>CFBundleVersion</key>
     <string>$(FLUTTER_BUILD_NUMBER)</string>
+
     <key>LSRequiresIPhoneOS</key>
     <true/>
+
     <key>UILaunchStoryboardName</key>
     <string>LaunchScreen</string>
+
     <key>UIMainStoryboardFile</key>
     <string>Main</string>
+
     <key>UISupportedInterfaceOrientations</key>
     <array>
       <string>UIInterfaceOrientationPortrait</string>
       <string>UIInterfaceOrientationLandscapeLeft</string>
       <string>UIInterfaceOrientationLandscapeRight</string>
     </array>
+
     <key>UISupportedInterfaceOrientations~ipad</key>
     <array>
       <string>UIInterfaceOrientationPortrait</string>
@@ -41,46 +56,40 @@
       <string>UIInterfaceOrientationLandscapeLeft</string>
       <string>UIInterfaceOrientationLandscapeRight</string>
     </array>
+
     <key>CADisableMinimumFrameDurationOnPhone</key>
     <true/>
+
     <key>UIApplicationSupportsIndirectInputEvents</key>
     <true/>
 
 
-
-
-
-
-
-
-
+    <!-- URL Schemes (Firebase + Google Sign-in + bundle) -->
     <key>CFBundleURLTypes</key>
     <array>
-      <dict>
-        <key>CFBundleTypeRole</key>
-        <string>Editor</string>
-        <key>CFBundleURLSchemes</key>
-        <array>
-          <!-- Encoded App ID من Firebase -->
-          <string>app-1-563950462964-ios-a42d70b510fffff032bba1</string>
-          <!-- REVERSED_CLIENT_ID من GoogleService-Info.plist -->
-          <string>com.googleusercontent.apps.563950462964-26pdp2v7lj3166lil9qu0kbj3a7k91dc</string>
-          <!-- Bundle Identifier -->
-          <string>com.khadamat.clubapporganizationssection</string>
-        </array>
-      </dict>
+        <dict>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>app-1-563950462964-ios-a42d70b510fffff032bba1</string>
+                <string>com.googleusercontent.apps.563950462964-26pdp2v7lj3166lil9qu0kbj3a7k91dc</string>
+                <string>com.khadamat.clubapporganizationssection</string>
+            </array>
+        </dict>
     </array>
 
 
+    <!-- Background modes for notifications -->
     <key>UIBackgroundModes</key>
     <array>
         <string>fetch</string>
         <string>remote-notification</string>
     </array>
 
+    <!-- APNs environment MUST be production for TestFlight -->
+    <key>aps-environment</key>
+    <string>production</string>
 
-
-
-
-  </dict>
+</dict>
 </plist>
