@@ -30,6 +30,13 @@ workflows:
           fi
           echo "✅ Push Notifications capability found"
 
+          echo "Checking Background Modes..."
+          if ! grep -q "remote-notification" ios/Runner/Info.plist; then
+            echo "⚠️ Warning: Background Modes (remote-notification) not set"
+            exit 1
+          fi
+          echo "✅ Background Modes capability found"
+
       # بناء IPA نسخة release
       - name: Build IPA
         script: |

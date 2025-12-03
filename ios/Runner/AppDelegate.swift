@@ -12,19 +12,20 @@ import UserNotifications
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
 
+    UNUserNotificationCenter.current().delegate = self
+    Messaging.messaging().delegate = self
+    application.registerForRemoteNotifications()
+    GeneratedPluginRegistrant.register(with: self)
+
 
     // إعداد إشعارات iOS
-    UNUserNotificationCenter.current().delegate = self
     let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
     UNUserNotificationCenter.current().requestAuthorization(options: authOptions) { granted, error in
       print("Permission granted: \(granted)")
     }
-    application.registerForRemoteNotifications()
 
-    // إعداد Firebase Messaging delegate
-    Messaging.messaging().delegate = self
 
-    GeneratedPluginRegistrant.register(with: self)
+
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
