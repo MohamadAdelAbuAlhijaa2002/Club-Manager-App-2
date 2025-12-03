@@ -7,20 +7,20 @@ workflows:
       vars:
         FIREBASE_APP_ID: "1-563950462964-ios-a42d70b510fffff032bba1"
         FIREBASE_PROJECT_ID: "clubnotification-c0a25"
-        GOOGLE_APPLICATION_CREDENTIALS: Encrypted(GOOGLE_APPLICATION_CREDENTIALS)
+        GOOGLE_APPLICATION_CREDENTIALS_JSON: Encrypted(GOOGLE_APPLICATION_CREDENTIALS_JSON)
 
     scripts:
-      # تثبيت Firebase CLI
+      # 1. تثبيت Firebase CLI
       - name: Install Firebase CLI
         script: |
           curl -sL https://firebase.tools | bash
 
-      # تثبيت dependencies الخاصة بFlutter
+      # 2. تثبيت dependencies الخاصة بـ Flutter
       - name: Install Flutter dependencies
         script: |
           flutter pub get
 
-      # التحقق من capabilities (Push Notifications و Background Modes)
+      # 3. التحقق من قدرات iOS
       - name: Verify iOS Capabilities
         script: |
           echo "Checking Push Notifications capability..."
@@ -37,11 +37,10 @@ workflows:
           fi
           echo "✅ Background Modes capability found"
 
-      # بناء IPA نسخة release
+      # 4. بناء IPA نسخة release
       - name: Build IPA
         script: |
           flutter build ipa --release
-          # التأكد من وجود IPA
           IPA_PATH="build/ios/ipa/Runner.ipa"
           if [ ! -f "$IPA_PATH" ]; then
             echo "❌ IPA file not found at $IPA_PATH"
@@ -49,20 +48,16 @@ workflows:
           fi
           echo "✅ IPA built at $IPA_PATH"
 
-      # رفع التطبيق إلى Firebase App Distribution
+      # 5. رفع التطبيق إلى Firebase App Distribution
       - name: Upload to Firebase App Distribution
         script: |
-          echo "FIREBASE_PROJECT_ID = $FIREBASE_PROJECT_ID"
-          echo "Checking GOOGLE_APPLICATION_CREDENTIALS..."
-          if [ ! -f "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
-            echo "❌ GOOGLE_APPLICATION_CREDENTIALS file not found!"
-            exit 1
-          fi
+          echo "Setting up Firebase Service Account..."
+          echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > service-account.json
+          export GOOGLE_APPLICATION_CREDENTIALS="$(pwd)/service-account.json"
 
-          export GOOGLE_APPLICATION_CREDENTIALS="$GOOGLE_APPLICATION_CREDENTIALS"
-
+          echo "Uploading IPA to Firebase App Distribution..."
           firebase appdistribution:distribute "$IPA_PATH" \
             --app "$FIREBASE_APP_ID" \
             --project "$FIREBASE_PROJECT_ID" \
             --release-notes "iOS Test Release" \
-            --groups "testers"
+            --groups "clubIos"
