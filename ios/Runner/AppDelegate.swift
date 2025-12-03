@@ -1,29 +1,28 @@
 import UIKit
 import Flutter
+import FirebaseCore
 import FirebaseMessaging
 import UserNotifications
 
 @main
-@objc class AppDelegate: FlutterAppDelegate {
+@objc class AppDelegate: FlutterAppDelegate, MessagingDelegate {
 
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+    // تهيئة Firebase
+    FirebaseApp.configure()
 
     // إعداد إشعارات iOS
     UNUserNotificationCenter.current().delegate = self
     let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
     UNUserNotificationCenter.current().requestAuthorization(options: authOptions) { granted, error in
-        if let error = error {
-            print("Notification permission error: \(error)")
-        } else {
-            print("Permission granted: \(granted)")
-        }
+      print("Permission granted: \(granted)")
     }
     application.registerForRemoteNotifications()
 
-    // تعيين delegate لـ Firebase Messaging
+    // إعداد Firebase Messaging delegate
     Messaging.messaging().delegate = self
 
     GeneratedPluginRegistrant.register(with: self)
@@ -35,28 +34,21 @@ import UserNotifications
     Messaging.messaging().apnsToken = deviceToken
     super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
   }
-}
 
-// MARK: - MessagingDelegate
-extension AppDelegate: MessagingDelegate {
+  // استقبال FCM token
   func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
     print("FCM token: \(fcmToken ?? "")")
-    // احفظ التوكن في السيرفر أو SharedPreferences
   }
-}
-
-// MARK: - UNUserNotificationCenterDelegate
-extension AppDelegate: UNUserNotificationCenterDelegate {
 
   // إشعارات أثناء foreground
-  func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification,
-                              withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+  override func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification,
+                                       withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
     completionHandler([.alert, .badge, .sound])
   }
 
   // التعامل مع النقر على الإشعارات
-  func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse,
-                              withCompletionHandler completionHandler: @escaping () -> Void) {
+  override func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse,
+                                       withCompletionHandler completionHandler: @escaping () -> Void) {
     completionHandler()
   }
 }
