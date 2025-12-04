@@ -23,8 +23,17 @@ class FirebaseNotification {
           debugPrint("⚠️ User declined notifications");
           return "Token not available: User denied permission";
         }
+
+        String? apnsToken = await  _messaging.getAPNSToken();
+        debugPrint("APNs token: $apnsToken");
+
       }
 
+      await Future<void>.delayed(
+        const Duration(
+          seconds: 5,
+        ),
+      );
       // الحصول على FCM token
       String? token = await _messaging.getToken();
       if (token == null) {

@@ -6,5 +6,11 @@
         <string>production</string>
         <key>com.apple.developer.push-notifications</key>
         <true/>
+
+        <key>UIBackgroundModes</key>
+        <array>
+            <string>fetch</string>
+            <string>remote-notification</string>
+        </array>
     </dict>
 </plist>

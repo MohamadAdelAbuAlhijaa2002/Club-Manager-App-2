@@ -31,6 +31,7 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    await FirebaseMessaging.instance.setAutoInitEnabled(true);
     print("Firebase initialized successfully");
   } catch (e) {
     print("Firebase initialization failed: $e");
