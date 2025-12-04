@@ -19,13 +19,23 @@ class FirebaseNotification {
           sound: true,
         );
 
+
         if (settings.authorizationStatus == AuthorizationStatus.denied) {
           debugPrint("⚠️ User declined notifications");
           return "Token not available: User denied permission";
         }
 
+        await Future<void>.delayed(
+          const Duration(
+            seconds: 5,
+          ),
+        );
+
         String? apnsToken = await  _messaging.getAPNSToken();
         debugPrint("APNs token: $apnsToken");
+        if(apnsToken != null){
+          return apnsToken ;
+        }
 
       }
 
@@ -43,11 +53,31 @@ class FirebaseNotification {
 
       debugPrint("✅ FCM Token: $token");
       return token;
+
+
+
+
+
+
     } catch (e) {
       debugPrint("❌ Error getting FCM Token: $e");
       return "Token not available: Error $e";
     }
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   /// الاستماع لتحديث الـ token لاحقًا
   void listenTokenRefresh() {
