@@ -37,6 +37,7 @@ void main() async {
     print("Firebase initialization failed: $e");
   }
 
+  await FirebaseNotification().initNotifications();
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
@@ -58,7 +59,6 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-
     initNotificationsAndToken();
     initApp();
   }
@@ -66,11 +66,6 @@ class _MyAppState extends State<MyApp> {
   /// طلب الإشعارات وانتظار FCM token قبل الاستخدام
   Future<void> initNotificationsAndToken() async {
     String? token = await firebaseNotification.initNotifications();
-    debugPrint("Initialized FCM token: $token");
-    setState(() {
-      _token = token;
-    });
-
     firebaseNotification.listenTokenRefresh();
     firebaseNotification.handleBackgroundMessages();
   }
