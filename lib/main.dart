@@ -21,23 +21,17 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  FirebaseNotification().handleBackgroundMessages();
   print("🔔 Background message: ${message.messageId}");
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  await FirebaseMessaging.instance.setAutoInitEnabled(true);
 
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    await FirebaseMessaging.instance.setAutoInitEnabled(true);
-    print("Firebase initialized successfully");
-  } catch (e) {
-    print("Firebase initialization failed: $e");
-  }
-
-  await FirebaseNotification().initNotifications();
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
@@ -63,7 +57,6 @@ class _MyAppState extends State<MyApp> {
     initApp();
   }
 
-  /// طلب الإشعارات وانتظار FCM token قبل الاستخدام
   Future<void> initNotificationsAndToken() async {
     String? token = await firebaseNotification.initNotifications();
     firebaseNotification.listenTokenRefresh();
@@ -74,7 +67,7 @@ class _MyAppState extends State<MyApp> {
     try {
       String? savedToken = await getTokenOrganization();
       setState(() {
-        _token ??= savedToken; // استخدم توكن FCM إذا لم يصل بعد
+        _token ??= savedToken;
         _loading = false;
       });
     } catch (e, st) {

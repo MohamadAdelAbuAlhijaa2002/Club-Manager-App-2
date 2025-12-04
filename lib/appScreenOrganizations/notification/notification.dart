@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../../main.dart';
 import 'notificationScreen.dart';
@@ -8,93 +9,136 @@ import 'notificationScreen.dart';
 class FirebaseNotification {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
-  /// تهيئة الإشعارات والحصول على FCM Token
+  // Flutter Local Notifications
+  late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+  late AndroidNotificationChannel channel;
+  bool _isNotificationsInitialized = false;
+
+  /// تهيئة الإشعارات والحصول على FCM / APNs Token
   Future<String> initNotifications() async {
     try {
-      // طلب إذن الإشعارات (iOS فقط)
       if (Platform.isIOS) {
         final settings = await _messaging.requestPermission(
           alert: true,
           badge: true,
           sound: true,
         );
-
-
         if (settings.authorizationStatus == AuthorizationStatus.denied) {
           debugPrint("⚠️ User declined notifications");
           return "Token not available: User denied permission";
         }
 
-        await Future<void>.delayed(
-          const Duration(
-            seconds: 5,
-          ),
+        // تفعيل عرض إشعارات foreground على iOS
+        await _messaging.setForegroundNotificationPresentationOptions(
+          alert: true,
+          badge: true,
+          sound: true,
         );
-
-        String? apnsToken = await  _messaging.getAPNSToken();
-        debugPrint("APNs token: $apnsToken");
-        if(apnsToken != null){
-          return apnsToken ;
-        }
-
       }
 
-      await Future<void>.delayed(
-        const Duration(
-          seconds: 5,
-        ),
-      );
-      // الحصول على FCM token
+      await _initLocalNotifications();
+
+      // الاستماع لتحديث الـ token لاحقًا
+      _messaging.onTokenRefresh.listen((newToken) {
+        debugPrint("🔄 Token refreshed: $newToken");
+      });
+
+      // APNs token على iOS
+      if (Platform.isIOS) {
+        String? apnsToken;
+        int attempts = 0;
+        while (apnsToken == null && attempts < 5) {
+          apnsToken = await _messaging.getAPNSToken();
+          await Future.delayed(const Duration(seconds: 2));
+          attempts++;
+        }
+        if (apnsToken != null) {
+          debugPrint("✅ APNs token: $apnsToken");
+          return apnsToken;
+        } else {
+          return "APNs token not received after $attempts attempts";
+        }
+      }
+
+      // FCM token
       String? token = await _messaging.getToken();
       if (token == null) {
         debugPrint("⚠️ FCM token is null");
-        return "Token not available: null";
+        return "Token not available: FCM token is null";
       }
-
       debugPrint("✅ FCM Token: $token");
       return token;
 
-
-
-
-
-
     } catch (e) {
-      debugPrint("❌ Error getting FCM Token: $e");
+      debugPrint("❌ Error getting token: $e");
       return "Token not available: Error $e";
     }
   }
 
+  /// إعداد Flutter Local Notifications
+  Future<void> _initLocalNotifications() async {
+    if (_isNotificationsInitialized) return;
 
+    channel = const AndroidNotificationChannel(
+      'high_importance_channel',
+      'High Importance Notifications',
+      description: 'This channel is used for important notifications.',
+      importance: Importance.high,
+    );
 
+    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
+    if (!kIsWeb) {
+      // إنشاء قناة إشعارات على Android
+      await flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(channel);
+    }
 
+    _isNotificationsInitialized = true;
+  }
 
-
-
-
-
-
-
-
-
-
-  /// الاستماع لتحديث الـ token لاحقًا
+  /// التعامل مع تحديث الـ token لاحقًا
   void listenTokenRefresh() {
     _messaging.onTokenRefresh.listen((newToken) {
-      debugPrint("🔄 FCM Token refreshed: $newToken");
+      debugPrint("🔄 Token refreshed: $newToken");
     });
   }
 
   /// التعامل مع الإشعارات عند فتح التطبيق
   void handleBackgroundMessages() {
+    FirebaseMessaging.onMessage.listen(_showNotification);
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
     _messaging.getInitialMessage().then(_handleMessage);
   }
 
   void _handleMessage(RemoteMessage? message) {
     if (message == null) return;
-    // هنا استدعاء الشاشة الخاصة بالإشعار
-     navigatorKey.currentState?.pushNamed(NotificationScreen.routeName);
+    navigatorKey.currentState?.pushNamed(NotificationScreen.routeName);
+  }
+
+  /// عرض إشعار باستخدام Flutter Local Notifications
+  void _showNotification(RemoteMessage message) {
+    RemoteNotification? notification = message.notification;
+    AndroidNotification? android = message.notification?.android;
+    if (notification != null) {
+      flutterLocalNotificationsPlugin.show(
+        notification.hashCode,
+        notification.title,
+        notification.body,
+        NotificationDetails(
+          android: android != null
+              ? AndroidNotificationDetails(
+            channel.id,
+            channel.name,
+            channelDescription: channel.description,
+            icon: 'launch_background',
+          )
+              : null,
+          iOS: DarwinNotificationDetails(),
+        ),
+      );
+    }
   }
 }
