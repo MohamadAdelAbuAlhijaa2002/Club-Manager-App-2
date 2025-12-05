@@ -10,7 +10,7 @@ import 'notificationScreen.dart';
 class FirebaseNotification {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
-  // Flutter Local Notifications
+  /// Flutter Local Notifications
   late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
   late AndroidNotificationChannel channel;
   bool _isNotificationsInitialized = false;
@@ -18,17 +18,21 @@ class FirebaseNotification {
   /// تهيئة الإشعارات والحصول على FCM / APNs Token
   Future<String> initNotifications() async {
     try {
+      // طلب صلاحيات iOS
       if (Platform.isIOS) {
         final settings = await _messaging.requestPermission(
           alert: true,
           badge: true,
           sound: true,
+          provisional: true,
         );
+
         if (settings.authorizationStatus == AuthorizationStatus.denied) {
           debugPrint("⚠️ User declined notifications");
           return "Token not available: User denied permission";
         }
-        // تفعيل عرض إشعارات foreground على iOS
+
+        // عرض إشعارات foreground على iOS
         await _messaging.setForegroundNotificationPresentationOptions(
           alert: true,
           badge: true,
@@ -36,62 +40,65 @@ class FirebaseNotification {
         );
       }
 
+      // تهيئة Local Notifications
       await _initLocalNotifications();
 
-      // الاستماع لتحديث الـ token لاحقًا
+      // تفعيل FCM auto-init
+      await _messaging.setAutoInitEnabled(true);
+
+      // الاستماع لتحديث الـ token مرة واحدة
       _messaging.onTokenRefresh.listen((newToken) {
         debugPrint("🔄 Token refreshed: $newToken");
       });
 
-      // APNs token على iOS
+      // الحصول على APNs token على iOS
       if (Platform.isIOS) {
-        String? apnsToken;
-        int attempts = 0;
-        final completer = Completer<String?>();
-        void tokenListener(String? token) {
-          if (token != null && !completer.isCompleted) {
-            debugPrint("✅ APNs token received: $token");
-            completer.complete(token);
-          }
-        }
-
-        final sub = _messaging.onTokenRefresh.listen(tokenListener);
-
-        String? token = await _messaging.getAPNSToken();
-        if (token != null) {
-          sub.cancel();
-          return token;
-        }
-
-        try {
-          token = await completer.future.timeout(
-            const Duration(seconds: 30),
-            onTimeout: () {
-              debugPrint("⚠️ APNs token not received after 30 seconds");
-              return null;
-            },
-          );
-        } finally {
-          sub.cancel();
-        }
-
-        if (token == null) return "APNs token not received";
-        return token;
-
+        final apnsToken = await _getAPNSToken();
+        if (apnsToken == null) return "APNs token not received";
+        return apnsToken;
       }
 
-      // FCM token
-      String? token = await _messaging.getToken();
-      if (token == null) {
+      // الحصول على FCM token على Android / Web
+      final fcmToken = await _messaging.getToken();
+      if (fcmToken == null) {
         debugPrint("⚠️ FCM token is null");
         return "Token not available: FCM token is null";
       }
-      debugPrint("✅ FCM Token: $token");
-      return token;
 
+      debugPrint("✅ FCM Token: $fcmToken");
+      return fcmToken;
     } catch (e) {
       debugPrint("❌ Error getting token: $e");
       return "Token not available: Error $e";
+    }
+  }
+
+  /// الحصول على APNs token مع timeout
+  Future<String?> _getAPNSToken() async {
+    final completer = Completer<String?>();
+    void tokenListener(String? token) {
+      if (token != null && !completer.isCompleted) {
+        debugPrint("✅ APNs token received: $token");
+        completer.complete(token);
+      }
+    }
+
+    final sub = _messaging.onTokenRefresh.listen(tokenListener);
+
+    try {
+      final token = await _messaging.getAPNSToken();
+      if (token != null) return token;
+
+      // انتظار APNs token حتى 30 ثانية
+      return await completer.future.timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          debugPrint("⚠️ APNs token not received after 30 seconds");
+          return null;
+        },
+      );
+    } finally {
+      sub.cancel();
     }
   }
 
@@ -119,29 +126,23 @@ class FirebaseNotification {
     _isNotificationsInitialized = true;
   }
 
-  /// التعامل مع تحديث الـ token لاحقًا
-  void listenTokenRefresh() {
-    _messaging.onTokenRefresh.listen((newToken) {
-      debugPrint("🔄 Token refreshed: $newToken");
-    });
-  }
-
   /// التعامل مع الإشعارات عند فتح التطبيق
-  void handleBackgroundMessages() {
+  void handleNotifications() {
+    // إشعارات foreground
     FirebaseMessaging.onMessage.listen(_showNotification);
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
-    _messaging.getInitialMessage().then(_handleMessage);
-  }
 
-  void _handleMessage(RemoteMessage? message) {
-    if (message == null) return;
-    navigatorKey.currentState?.pushNamed(NotificationScreen.routeName);
+    // عند فتح التطبيق من الخلفية
+    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
+
+    // عند فتح التطبيق من حالة terminated
+    _messaging.getInitialMessage().then(_handleMessage);
   }
 
   /// عرض إشعار باستخدام Flutter Local Notifications
   void _showNotification(RemoteMessage message) {
-    RemoteNotification? notification = message.notification;
-    AndroidNotification? android = message.notification?.android;
+    final notification = message.notification;
+    final android = message.notification?.android;
+
     if (notification != null) {
       flutterLocalNotificationsPlugin.show(
         notification.hashCode,
@@ -156,9 +157,15 @@ class FirebaseNotification {
             icon: 'lib/assets/icon.png',
           )
               : null,
-          iOS: DarwinNotificationDetails(),
+          iOS: const DarwinNotificationDetails(),
         ),
       );
     }
+  }
+
+  /// التعامل مع النقر على الإشعار
+  void _handleMessage(RemoteMessage? message) {
+    if (message == null) return;
+    navigatorKey.currentState?.pushNamed(NotificationScreen.routeName);
   }
 }

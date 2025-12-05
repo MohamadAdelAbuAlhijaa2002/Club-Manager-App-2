@@ -21,7 +21,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  FirebaseNotification().handleBackgroundMessages();
+  FirebaseNotification().handleNotifications();
   print("🔔 Background message: ${message.messageId}");
 }
 
@@ -53,15 +53,11 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    initNotificationsAndToken();
+    firebaseNotification.handleNotifications();
     initApp();
   }
 
-  Future<void> initNotificationsAndToken() async {
-    String? token = await firebaseNotification.initNotifications();
-    firebaseNotification.listenTokenRefresh();
-    firebaseNotification.handleBackgroundMessages();
-  }
+
 
   Future<void> initApp() async {
     try {
