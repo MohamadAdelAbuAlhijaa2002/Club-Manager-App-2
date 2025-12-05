@@ -91,5 +91,8 @@
     <key>aps-environment</key>
     <string>production</string>
 
+    <key>FirebaseAppDelegateProxyEnabled</key>
+    <false/>
+
 </dict>
 </plist>

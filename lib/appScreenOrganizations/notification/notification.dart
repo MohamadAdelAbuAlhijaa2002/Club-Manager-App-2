@@ -153,7 +153,7 @@ class FirebaseNotification {
             channel.id,
             channel.name,
             channelDescription: channel.description,
-            icon: 'launch_background',
+            icon: 'lib/assets/icon.png',
           )
               : null,
           iOS: DarwinNotificationDetails(),
