@@ -47,15 +47,27 @@ class FirebaseNotification {
       await _messaging.setAutoInitEnabled(true);
 
       // الاستماع لتحديث الـ token مرة واحدة
+
       _messaging.onTokenRefresh.listen((newToken) {
         debugPrint("🔄 Token refreshed: $newToken");
       });
 
       // الحصول على APNs token على iOS
       if (Platform.isIOS) {
-        final apnsToken = await _getAPNSToken();
-        if (apnsToken == null) return "APNs token not received";
-        return apnsToken;
+        // final apnsToken = await _getAPNSToken();
+        // if (apnsToken == null) return "APNs token not received";
+        // return apnsToken;
+        Duration(seconds: 30);
+        final apnsToken = await _messaging.getAPNSToken();
+
+        if(apnsToken != null) {
+          Duration(seconds: 30);
+          final apnsToken = await _messaging.getToken();
+          return "$apnsToken" ;
+        }
+        else
+          return "token is  : $apnsToken";
+
       }
 
       // الحصول على FCM token على Android / Web
@@ -72,6 +84,21 @@ class FirebaseNotification {
       return "Token not available: Error $e";
     }
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   /// الحصول على APNs token مع timeout
   Future<String?> _getAPNSToken() async {
