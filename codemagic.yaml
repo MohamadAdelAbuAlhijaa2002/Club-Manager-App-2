@@ -15,7 +15,8 @@ workflows:
         APNS_TEAM_ID: M7Y6M3HA47
         APNS_AUTH_KEY_PATH: ios/certs/AuthKey_HNV4V35QT3.p8
         IOS_PROVISIONING_PROFILE_PATH: ios/certs/club_app_ios_app_store_1764750362.mobileprovision
-        P12_PATH: ios/certs/distribution.p12
+        P12_PATH: ios/certs/push.p12
+        P12_KEY_PATH: ios/certs/push.key
         P12_PASSWORD: Encrypted(P12_PASSWORD)
 
     cache:
@@ -53,9 +54,16 @@ workflows:
 
       - name: Import P12 Certificate to Keychain
         script: |
-          # إنشاء keychain مؤقت
+          # إنشاء Keychain مؤقت
           security create-keychain -p "" build.keychain
-          security import $P12_PATH -k build.keychain -P "$P12_PASSWORD" -T /usr/bin/codesign
+
+          # فك تشفير P12 باستخدام push.key
+          openssl pkcs12 -in $P12_PATH -out build/push.pem -nodes -passin pass:$P12_PASSWORD -inkey $P12_KEY_PATH
+
+          # استيراد PEM إلى Keychain
+          security import build/push.pem -k build.keychain -T /usr/bin/codesign
+
+          # التحقق من Keychain
           security list-keychain -s build.keychain
 
       - name: Verify iOS Capabilities
