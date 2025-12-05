@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -27,7 +28,6 @@ class FirebaseNotification {
           debugPrint("⚠️ User declined notifications");
           return "Token not available: User denied permission";
         }
-
         // تفعيل عرض إشعارات foreground على iOS
         await _messaging.setForegroundNotificationPresentationOptions(
           alert: true,
@@ -47,17 +47,37 @@ class FirebaseNotification {
       if (Platform.isIOS) {
         String? apnsToken;
         int attempts = 0;
-        while (apnsToken == null && attempts < 5) {
-          apnsToken = await _messaging.getAPNSToken();
-          await Future.delayed(const Duration(seconds: 2));
-          attempts++;
+        final completer = Completer<String?>();
+        void tokenListener(String? token) {
+          if (token != null && !completer.isCompleted) {
+            debugPrint("✅ APNs token received: $token");
+            completer.complete(token);
+          }
         }
-        if (apnsToken != null) {
-          debugPrint("✅ APNs token: $apnsToken");
-          return apnsToken;
-        } else {
-          return "APNs token not received after $attempts attempts";
+
+        final sub = _messaging.onTokenRefresh.listen(tokenListener);
+
+        String? token = await _messaging.getAPNSToken();
+        if (token != null) {
+          sub.cancel();
+          return token;
         }
+
+        try {
+          token = await completer.future.timeout(
+            const Duration(seconds: 30),
+            onTimeout: () {
+              debugPrint("⚠️ APNs token not received after 30 seconds");
+              return null;
+            },
+          );
+        } finally {
+          sub.cancel();
+        }
+
+        if (token == null) return "APNs token not received";
+        return token;
+
       }
 
       // FCM token
