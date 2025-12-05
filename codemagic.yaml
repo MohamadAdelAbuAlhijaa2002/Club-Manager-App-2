@@ -15,7 +15,7 @@ workflows:
         APNS_TEAM_ID: M7Y6M3HA47
         APNS_AUTH_KEY_PATH: ios/certs/AuthKey_HNV4V35QT3.p8
         IOS_PROVISIONING_PROFILE_PATH: ios/certs/ClubAppProfile.mobileprovision
-        P12_PATH: ios/certs/push.p12
+        P12_PATH: ios/certs/ios_distribution.p12
         P12_KEY_PATH: ios/certs/push.key
         P12_PASSWORD: Encrypted(P12_PASSWORD)
 
@@ -58,7 +58,7 @@ workflows:
           security create-keychain -p "" build.keychain
 
           # فك تشفير P12 باستخدام push.key
-          openssl pkcs12 -in $P12_PATH -out build/push.pem -nodes -passin pass:$P12_PASSWORD -inkey $P12_KEY_PATH
+          openssl pkcs12 -in $P12_PATH -out build/push.pem -nodes -passin pass:Mo-12345 -inkey $P12_KEY_PATH
 
           # استيراد PEM إلى Keychain
           security import build/push.pem -k build.keychain -T /usr/bin/codesign
