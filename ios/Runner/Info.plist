@@ -76,21 +76,28 @@
         </dict>
     </array>
 
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <true/>
+    </dict>
+
+
+
+
     <!-- Background modes للإشعارات المحلية والبعيدة -->
     <key>UIBackgroundModes</key>
     <array>
         <string>fetch</string>
         <string>remote-notification</string>
-        <string>background-processing</string>
+        <string>notification</string>
     </array>
 
     <!-- وصف استخدام الإشعارات (إلزامي) -->
     <key>NSUserNotificationUsageDescription</key>
     <string>التطبيق يستخدم الإشعارات لتذكيرك بالأحداث المهمة والتحديثات.</string>
 
-    <!-- APNs environment -->
-    <key>aps-environment</key>
-    <string>production</string>
+
 
     <!-- Firebase settings -->
     <key>FirebaseAppDelegateProxyEnabled</key>
