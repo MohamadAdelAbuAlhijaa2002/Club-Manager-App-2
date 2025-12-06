@@ -1,102 +1,102 @@
-workflows:
-  ios-release:
-    name: iOS Release Build
-    environment:
-      flutter: stable
-
-      groups:
-        - ios_credentials
-
-      vars:
-        FIREBASE_APP_ID: "1:563950462964:ios:a42d70b510fffff032bba1"
-        FIREBASE_PROJECT_ID: "clubnotification-c0a25"
-        GOOGLE_APPLICATION_CREDENTIALS_JSON: Encrypted(GOOGLE_APPLICATION_CREDENTIALS_JSON)
-        APNS_KEY_ID: HNV4V35QT3
-        APNS_TEAM_ID: M7Y6M3HA47
-        APNS_AUTH_KEY_PATH: ios/certs/AuthKey_HNV4V35QT3.p8
-        IOS_PROVISIONING_PROFILE_PATH: ios/certs/ClubAppProfile.mobileprovision
-        P12_PATH: ios/certs/ios_distribution.p12
-        P12_KEY_PATH: ios/certs/push.key
-        P12_PASSWORD: Encrypted(P12_PASSWORD)
-
-    cache:
-      cache_paths:
-        - $HOME/.pub-cache
-        - ios/Pods
-        - $HOME/Library/Caches/CocoaPods
-        - $FLUTTER_ROOT/bin/cache
-        - build/
-
-    scripts:
-      - name: Install Firebase CLI
-        script: |
-          if ! command -v firebase &> /dev/null; then
-            curl -sL https://firebase.tools | bash
-          fi
-
-      - name: Install Flutter dependencies
-        script: flutter pub get
-
-      - name: Install iOS Pods
-        script: |
-          cd ios
-          pod install --repo-update
-          cd ..
-
-      - name: Configure APNs Auth Key
-        script: |
-          mkdir -p ~/private_keys
-          cp $APNS_AUTH_KEY_PATH ~/private_keys/AuthKey.p8
-          if [ ! -f ~/private_keys/AuthKey.p8 ]; then
-            echo "❌ Failed to copy APNs Auth Key"
-            exit 1
-          fi
-
-      - name: Import P12 Certificate to Keychain
-        script: |
-          # إنشاء Keychain مؤقت
-          security create-keychain -p "" build.keychain
-
-          # فك تشفير P12 باستخدام push.key
-          openssl pkcs12 -in $P12_PATH -out build/push.pem -nodes -passin pass:Mo-12345 -inkey $P12_KEY_PATH
-
-          # استيراد PEM إلى Keychain
-          security import build/push.pem -k build.keychain -T /usr/bin/codesign
-
-          # التحقق من Keychain
-          security list-keychain -s build.keychain
-
-      - name: Verify iOS Capabilities
-        script: |
-          if ! plutil -p ios/Runner/Info.plist | grep -q "aps-environment"; then
-            echo "❌ aps-environment not set in Info.plist"
-            exit 1
-          fi
-          if ! plutil -p ios/Runner/Info.plist | grep -q "remote-notification"; then
-            echo "❌ Background Modes not set"
-            exit 1
-          fi
-          if ! plutil -p ios/Runner/Runner.entitlements | grep -q "aps-environment"; then
-            echo "❌ aps-environment not set in Runner.entitlements"
-            exit 1
-          fi
-
-      - name: Build IPA
-        script: |
-          flutter build ipa --release
-          IPA_PATH="build/ios/ipa/Runner.ipa"
-          if [ ! -f "$IPA_PATH" ]; then
-            exit 1
-          fi
-
-      - name: Upload to Firebase App Distribution
-        script: |
-          printf "%s" "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > "$CM_BUILD_DIR/service-account.json"
-          export GOOGLE_APPLICATION_CREDENTIALS="$CM_BUILD_DIR/service-account.json"
-          IPA_PATH="build/ios/ipa/Runner.ipa"
-          firebase appdistribution:distribute "$IPA_PATH" \
-            --app "$FIREBASE_APP_ID" \
-            --project "$FIREBASE_PROJECT_ID" \
-            --release-notes "iOS Test Release" \
-            --groups "clubIos"
-          rm "$CM_BUILD_DIR/service-account.json"
+#workflows:
+#  ios-release:
+#    name: iOS Release Build
+#    environment:
+#      flutter: stable
+#
+#      groups:
+#        - ios_credentials
+#
+#      vars:
+#        FIREBASE_APP_ID: "1:563950462964:ios:a42d70b510fffff032bba1"
+#        FIREBASE_PROJECT_ID: "clubnotification-c0a25"
+#        GOOGLE_APPLICATION_CREDENTIALS_JSON: Encrypted(GOOGLE_APPLICATION_CREDENTIALS_JSON)
+#        APNS_KEY_ID: HNV4V35QT3
+#        APNS_TEAM_ID: M7Y6M3HA47
+#        APNS_AUTH_KEY_PATH: ios/certs/AuthKey_HNV4V35QT3.p8
+#        IOS_PROVISIONING_PROFILE_PATH: ios/certs/ClubAppProfile.mobileprovision
+#        P12_PATH: ios/certs/ios_distribution.p12
+#        P12_KEY_PATH: ios/certs/push.key
+#        P12_PASSWORD: Encrypted(P12_PASSWORD)
+#
+#    cache:
+#      cache_paths:
+#        - $HOME/.pub-cache
+#        - ios/Pods
+#        - $HOME/Library/Caches/CocoaPods
+#        - $FLUTTER_ROOT/bin/cache
+#        - build/
+#
+#    scripts:
+#      - name: Install Firebase CLI
+#        script: |
+#          if ! command -v firebase &> /dev/null; then
+#            curl -sL https://firebase.tools | bash
+#          fi
+#
+#      - name: Install Flutter dependencies
+#        script: flutter pub get
+#
+#      - name: Install iOS Pods
+#        script: |
+#          cd ios
+#          pod install --repo-update
+#          cd ..
+#
+#      - name: Configure APNs Auth Key
+#        script: |
+#          mkdir -p ~/private_keys
+#          cp $APNS_AUTH_KEY_PATH ~/private_keys/AuthKey.p8
+#          if [ ! -f ~/private_keys/AuthKey.p8 ]; then
+#            echo "❌ Failed to copy APNs Auth Key"
+#            exit 1
+#          fi
+#
+#      - name: Import P12 Certificate to Keychain
+#        script: |
+#          # إنشاء Keychain مؤقت
+#          security create-keychain -p "" build.keychain
+#
+#          # فك تشفير P12 باستخدام push.key
+#          openssl pkcs12 -in $P12_PATH -out build/push.pem -nodes -passin pass:Mo-12345 -inkey $P12_KEY_PATH
+#
+#          # استيراد PEM إلى Keychain
+#          security import build/push.pem -k build.keychain -T /usr/bin/codesign
+#
+#          # التحقق من Keychain
+#          security list-keychain -s build.keychain
+#
+#      - name: Verify iOS Capabilities
+#        script: |
+#          if ! plutil -p ios/Runner/Info.plist | grep -q "aps-environment"; then
+#            echo "❌ aps-environment not set in Info.plist"
+#            exit 1
+#          fi
+#          if ! plutil -p ios/Runner/Info.plist | grep -q "remote-notification"; then
+#            echo "❌ Background Modes not set"
+#            exit 1
+#          fi
+#          if ! plutil -p ios/Runner/Runner.entitlements | grep -q "aps-environment"; then
+#            echo "❌ aps-environment not set in Runner.entitlements"
+#            exit 1
+#          fi
+#
+#      - name: Build IPA
+#        script: |
+#          flutter build ipa --release
+#          IPA_PATH="build/ios/ipa/Runner.ipa"
+#          if [ ! -f "$IPA_PATH" ]; then
+#            exit 1
+#          fi
+#
+#      - name: Upload to Firebase App Distribution
+#        script: |
+#          printf "%s" "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > "$CM_BUILD_DIR/service-account.json"
+#          export GOOGLE_APPLICATION_CREDENTIALS="$CM_BUILD_DIR/service-account.json"
+#          IPA_PATH="build/ios/ipa/Runner.ipa"
+#          firebase appdistribution:distribute "$IPA_PATH" \
+#            --app "$FIREBASE_APP_ID" \
+#            --project "$FIREBASE_PROJECT_ID" \
+#            --release-notes "iOS Test Release" \
+#            --groups "clubIos"
+#          rm "$CM_BUILD_DIR/service-account.json"

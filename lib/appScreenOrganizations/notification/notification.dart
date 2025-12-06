@@ -73,6 +73,26 @@ class FirebaseNotification {
 
      // tz.initializeTimeZones();
       // الحصول على FCM token على Android / Web
+
+      if (Platform.isIOS) {
+        String? apnsToken = await _messaging.getAPNSToken();
+        if (apnsToken != null) {
+          return apnsToken ;
+        } else {
+          await Future<void>.delayed(
+            const Duration(
+              seconds: 5,
+            ),
+          );
+          apnsToken = await _messaging.getAPNSToken();
+
+        }
+
+        if (apnsToken != null) {
+          return apnsToken ;
+        }
+      }
+
       final fcmToken = await _messaging.getToken();
       if (fcmToken == null) {
         debugPrint("⚠️ FCM token is null");
