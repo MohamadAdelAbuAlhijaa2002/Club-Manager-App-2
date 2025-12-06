@@ -66,7 +66,7 @@ workflows:
           security create-keychain -p "" "$CM_BUILD_DIR/build.keychain"
 
           echo "Decrypting P12 from path: $P12_PATH ..."
-          openssl pkcs12 -in "$P12_PATH" -out "$CM_BUILD_DIR/build/push.pem" -nodes -passin pass:$P12_PASSWORD
+          openssl pkcs12 -in "$P12_PATH" -out "$CM_BUILD_DIR/build/push.pem" -nodes -passin pass:Mo-12345
           if [ ! -f "$CM_BUILD_DIR/build/push.pem" ]; then
             echo "❌ Failed to decrypt P12"
             exit 1
