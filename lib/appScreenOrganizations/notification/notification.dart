@@ -75,6 +75,11 @@ class FirebaseNotification {
       // الحصول على FCM token على Android / Web
 
       if (Platform.isIOS) {
+        await Future<void>.delayed(
+          const Duration(
+            seconds: 5,
+          ),
+        );
         String? apnsToken = await _messaging.getAPNSToken();
         if (apnsToken != null) {
           return apnsToken ;
