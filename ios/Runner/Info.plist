@@ -90,7 +90,6 @@
     <array>
         <string>fetch</string>
         <string>remote-notification</string>
-        <string>notification</string>
     </array>
 
     <!-- وصف استخدام الإشعارات (إلزامي) -->
