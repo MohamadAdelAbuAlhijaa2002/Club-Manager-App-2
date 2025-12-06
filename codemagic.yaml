@@ -1,12 +1,11 @@
 workflows:
   ios-release:
     name: iOS Release Build
+    max_build_duration: 60
     environment:
       flutter: stable
-
       groups:
         - ios_credentials
-
       vars:
         FIREBASE_APP_ID: "1:563950462964:ios:a42d70b510fffff032bba1"
         FIREBASE_PROJECT_ID: "clubnotification-c0a25"
@@ -16,7 +15,6 @@ workflows:
         APNS_AUTH_KEY_PATH: ios/certs/AuthKey_HNV4V35QT3.p8
         IOS_PROVISIONING_PROFILE_PATH: ios/certs/ClubAppProfile.mobileprovision
         P12_PATH: ios/certs/ios_distribution.p12
-        P12_KEY_PATH: ios/certs/push.key
         P12_PASSWORD: Encrypted(P12_PASSWORD)
 
     cache:
@@ -28,44 +26,55 @@ workflows:
         - build/
 
     scripts:
+      # 1. تثبيت Firebase CLI إذا لم يكن موجود
       - name: Install Firebase CLI
         script: |
           if ! command -v firebase &> /dev/null; then
+            echo "Installing Firebase CLI..."
             curl -sL https://firebase.tools | bash
           fi
 
+      # 2. تثبيت Flutter dependencies
       - name: Install Flutter dependencies
         script: flutter pub get
 
+      # 3. تثبيت iOS Pods
       - name: Install iOS Pods
         script: |
           cd ios
           pod install --repo-update
           cd ..
 
+      # 4. إعداد APNs Auth Key
       - name: Configure APNs Auth Key
         script: |
-          mkdir -p ~/private_keys
-          cp $APNS_AUTH_KEY_PATH ~/private_keys/AuthKey.p8
-          if [ ! -f ~/private_keys/AuthKey.p8 ]; then
+          mkdir -p "$CM_BUILD_DIR/private_keys"
+          cp "$APNS_AUTH_KEY_PATH" "$CM_BUILD_DIR/private_keys/AuthKey.p8"
+          if [ ! -f "$CM_BUILD_DIR/private_keys/AuthKey.p8" ]; then
             echo "❌ Failed to copy APNs Auth Key"
             exit 1
           fi
+          echo "✅ APNs Auth Key configured"
 
+      # 5. استيراد P12 إلى Keychain باستخدام المتغير المشفر
       - name: Import P12 Certificate to Keychain
         script: |
-          # إنشاء Keychain مؤقت
-          security create-keychain -p "" build.keychain
+          echo "Creating temporary Keychain..."
+          security create-keychain -p "" "$CM_BUILD_DIR/build.keychain"
 
-          # فك تشفير P12 باستخدام push.key
-          openssl pkcs12 -in $P12_PATH -out build/push.pem -nodes -passin pass:Mo-12345 
+          echo "Decrypting P12..."
+          openssl pkcs12 -in "$P12_PATH" -out "$CM_BUILD_DIR/build/push.pem" -nodes -passin pass:$P12_PASSWORD
+          if [ ! -f "$CM_BUILD_DIR/build/push.pem" ]; then
+            echo "❌ Failed to decrypt P12"
+            exit 1
+          fi
 
-          # استيراد PEM إلى Keychain
-          security import build/push.pem -k build.keychain -T /usr/bin/codesign
+          echo "Importing PEM into Keychain..."
+          security import "$CM_BUILD_DIR/build/push.pem" -k "$CM_BUILD_DIR/build.keychain" -T /usr/bin/codesign
+          security list-keychain -s "$CM_BUILD_DIR/build.keychain"
+          echo "✅ P12 imported successfully"
 
-          # التحقق من Keychain
-          security list-keychain -s build.keychain
-
+      # 6. التحقق من iOS capabilities
       - name: Verify iOS Capabilities
         script: |
           if ! plutil -p ios/Runner/Info.plist | grep -q "aps-environment"; then
@@ -80,23 +89,37 @@ workflows:
             echo "❌ aps-environment not set in Runner.entitlements"
             exit 1
           fi
+          echo "✅ iOS capabilities verified"
 
+      # 7. Build IPA
       - name: Build IPA
         script: |
           flutter build ipa --release
           IPA_PATH="build/ios/ipa/Runner.ipa"
           if [ ! -f "$IPA_PATH" ]; then
+            echo "❌ IPA file not found: $IPA_PATH"
             exit 1
           fi
+          echo "✅ IPA built successfully: $IPA_PATH"
 
+      # 8. Upload IPA to Firebase App Distribution
       - name: Upload to Firebase App Distribution
         script: |
           printf "%s" "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > "$CM_BUILD_DIR/service-account.json"
           export GOOGLE_APPLICATION_CREDENTIALS="$CM_BUILD_DIR/service-account.json"
+
           IPA_PATH="build/ios/ipa/Runner.ipa"
           firebase appdistribution:distribute "$IPA_PATH" \
             --app "$FIREBASE_APP_ID" \
             --project "$FIREBASE_PROJECT_ID" \
             --release-notes "iOS Test Release" \
             --groups "clubIos"
+
           rm "$CM_BUILD_DIR/service-account.json"
+          echo "✅ IPA uploaded to Firebase App Distribution"
+
+    publishing:
+      email:
+        recipients:
+          - "muhammad.adel.abualhaijaa@gmail.com"
+
