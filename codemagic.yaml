@@ -65,6 +65,9 @@ workflows:
           echo "Creating temporary Keychain..."
           security create-keychain -p "" "$CM_BUILD_DIR/build.keychain"
 
+          # تأكد من وجود مجلد build
+          mkdir -p "$CM_BUILD_DIR/build"
+
           echo "Decrypting P12 from path: $P12_PATH ..."
           openssl pkcs12 -in "$P12_PATH" -out "$CM_BUILD_DIR/build/push.pem" -nodes -passin pass:Mo-12345
           if [ ! -f "$CM_BUILD_DIR/build/push.pem" ]; then
@@ -77,6 +80,7 @@ workflows:
           security import "$CM_BUILD_DIR/build/push.pem" -k "$CM_BUILD_DIR/build.keychain" -T /usr/bin/codesign
           security list-keychain -s "$CM_BUILD_DIR/build.keychain"
           echo "✅ P12 imported successfully"
+      
 
       # 6. التحقق من iOS capabilities
       - name: Verify iOS Capabilities
