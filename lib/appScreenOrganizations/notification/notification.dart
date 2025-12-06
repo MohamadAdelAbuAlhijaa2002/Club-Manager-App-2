@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 import '../../main.dart';
 import 'notificationScreen.dart';
@@ -29,7 +30,7 @@ class FirebaseNotification {
 
         if (settings.authorizationStatus == AuthorizationStatus.denied) {
           debugPrint("⚠️ User declined notifications");
-          return "Token not available: User denied permission";
+          throw Exception("Token not available: User denied permission");
         }
 
         // عرض إشعارات foreground على iOS
@@ -41,10 +42,10 @@ class FirebaseNotification {
       }
 
       // تهيئة Local Notifications
-      await _initLocalNotifications();
+    //  await _initLocalNotifications();
 
       // تفعيل FCM auto-init
-      await _messaging.setAutoInitEnabled(true);
+     // await _messaging.setAutoInitEnabled(true);
 
       // الاستماع لتحديث الـ token مرة واحدة
 
@@ -53,28 +54,30 @@ class FirebaseNotification {
       });
 
       // الحصول على APNs token على iOS
-      if (Platform.isIOS) {
-        // final apnsToken = await _getAPNSToken();
-        // if (apnsToken == null) return "APNs token not received";
-        // return apnsToken;
-        Duration(seconds: 30);
-        final apnsToken = await _messaging.getAPNSToken();
+      // if (Platform.isIOS) {
+      //   // final apnsToken = await _getAPNSToken();
+      //   // if (apnsToken == null) return "APNs token not received";
+      //   // return apnsToken;
+      //   Duration(seconds: 30);
+      //   final apnsToken = await _messaging.getAPNSToken();
+      //
+      //   if(apnsToken != null) {
+      //     Duration(seconds: 30);
+      //     final apnsToken = await _messaging.getToken();
+      //     return "$apnsToken" ;
+      //   }
+      //   else
+      //     return "token is  : $apnsToken";
+      //
+      // }
 
-        if(apnsToken != null) {
-          Duration(seconds: 30);
-          final apnsToken = await _messaging.getToken();
-          return "$apnsToken" ;
-        }
-        else
-          return "token is  : $apnsToken";
-
-      }
-
+     // tz.initializeTimeZones();
       // الحصول على FCM token على Android / Web
       final fcmToken = await _messaging.getToken();
       if (fcmToken == null) {
         debugPrint("⚠️ FCM token is null");
-        return "Token not available: FCM token is null";
+        throw Exception("Token not available: FCM token is null");
+
       }
 
       debugPrint("✅ FCM Token: $fcmToken");
