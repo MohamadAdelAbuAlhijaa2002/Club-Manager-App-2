@@ -3,10 +3,17 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:notificationapi_flutter_sdk/notificationapi_flutter_sdk.dart';
 
 import 'firebase_options.dart';
 
 void main() async {
+  NotificationAPI.setup(
+      clientId: '9wfs6tpl9m6qheb0ouswhzikib',
+      userId: '210m' // Replace with your user's unique identifier
+  );
+
+
   WidgetsFlutterBinding.ensureInitialized();
   try {
     await Firebase.initializeApp(
@@ -46,11 +53,23 @@ class _TokenScreenState extends State<TokenScreen> {
 
   Future<void> _getTokenSafely() async {
     try {
+      FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+      NotificationSettings settings = await messaging.requestPermission(
+        alert: true,
+        announcement: false,
+        badge: true,
+        carPlay: false,
+        criticalAlert: false,
+        provisional: false,
+        sound: true,
+      );
+
       // ✅ انتظار APNs token بـ Completer
       Completer<String?> tokenCompleter = Completer<String?>();
 
       // جرب getAPNSToken أولاً
-      String? apnsToken = await FirebaseMessaging.instance.getAPNSToken();
+      String? apnsToken = await messaging.getAPNSToken();
       if (apnsToken != null) {
         print("✅ APNs Token جاهز: $apnsToken");
         tokenCompleter.complete(apnsToken);
@@ -59,7 +78,7 @@ class _TokenScreenState extends State<TokenScreen> {
         print("⏳ انتظار APNs token...");
         await Future.delayed(Duration(seconds: 3));
 
-        apnsToken = await FirebaseMessaging.instance.getAPNSToken();
+        apnsToken = await messaging.getAPNSToken();
         if (apnsToken != null) {
           print("✅ APNs Token بعد delay: $apnsToken");
           tokenCompleter.complete(apnsToken);
@@ -69,7 +88,7 @@ class _TokenScreenState extends State<TokenScreen> {
       }
 
       // ✅ الحصول على FCM token
-      String? fcmToken = await FirebaseMessaging.instance.getToken();
+      String? fcmToken = await messaging.getToken();
       setState(() {
         _token = fcmToken;
         _isLoading = false;
