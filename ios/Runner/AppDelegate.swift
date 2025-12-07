@@ -12,7 +12,6 @@ import FirebaseCore
         UNUserNotificationCenter.current().delegate = self as UNUserNotificationCenterDelegate
       }
     GeneratedPluginRegistrant.register(with: self)
-    FirebaseApp.configure()
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 }
