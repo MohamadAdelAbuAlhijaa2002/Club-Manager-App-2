@@ -221,6 +221,6 @@ class FirebaseNotification {
   /// التعامل مع النقر على الإشعار
   void _handleMessage(RemoteMessage? message) {
     if (message == null) return;
-    navigatorKey.currentState?.pushNamed(NotificationScreen.routeName);
+    //navigatorKey.currentState?.pushNamed(NotificationScreen.routeName);
   }
 }
