@@ -1,9 +1,13 @@
+import 'dart:async';
+
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:http/http.dart' as http;
 
 
 
@@ -42,12 +46,17 @@ import 'package:flutter_slidable/flutter_slidable.dart';
                     extentRatio: 0.25,
                     children: [
                       SlidableAction(
-                        onPressed: (context) {
+                        onPressed: (context) async {
+                          bool connected = await checkInternet(
+                              context: context);
+
+                          if (connected)
                           // افتح شاشة التعديل هنا
                           print('Edit item $i');
                           // يمكنك فتح صفحة تعديل هنا باستخدام Navigator
                           // Navigator.push(context, MaterialPageRoute(builder: (_) => EditScreen()));
                         },
+
                         backgroundColor: Colors.white,
                         foregroundColor: Color(0xFF6A1B9A),
                         icon: icon,
@@ -201,11 +210,16 @@ Widget iconButton({
 
 Future NavigatorMethod(
     {required BuildContext context, required Widget screen})
-{
+async {
 
-  return Navigator.of(context).push(
+  // is check internet
+  bool connected = await checkInternet(context: context);
+
+  if(connected) {
+    return Navigator.of(context).push(
     MaterialPageRoute(builder: (_) => screen),
   );
+  }
 
   //return Navigator.push(context, MaterialPageRoute(builder: (context) => screen));
 }
@@ -323,10 +337,6 @@ bool checkPasswordSc(String value) {
     return true;
   }
 
-  if (!value.contains(RegExp(r'[@#$%-]'))) {
-    return true;
-  }
-
   return false;
 }
 
@@ -390,4 +400,80 @@ Widget InputTextDate({
       ),
     ),
   );
+}
+
+
+
+
+/// فحص الاتصال الحقيقي بالإنترنت عن طريق Google 204
+Future<bool> isInternetAvailable({int timeoutMs = 3000}) async {
+  try {
+    final response = await http
+        .get(Uri.parse('https://clients3.google.com/generate_204'))
+        .timeout(Duration(milliseconds: timeoutMs));
+
+    return response.statusCode == 204 || response.statusCode == 200;
+  } catch (_) {
+    return false;
+  }
+}
+
+/// ستريم لمراقبة حالة الإنترنت
+Stream<bool> internetStatusStream() async* {
+  // فحص أولي
+  yield await isInternetAvailable();
+
+  // مراقبة تغيّر الشبكة
+  final connectivity = Connectivity();
+
+  await for (final result in connectivity.onConnectivityChanged) {
+    if (result == ConnectivityResult.none) {
+      yield false;
+    } else {
+      yield await isInternetAvailable();
+    }
+  }
+}
+
+Future<bool> checkInternet({ required context}) async {
+  bool connected = await isInternetAvailable();
+  print("Internet: $connected");
+  if(!connected){
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        elevation: 8,
+        padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+        backgroundColor: Colors.red.shade700,
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+        content: Row(
+          children: [
+            Icon(
+              Icons.wifi_off_rounded,
+              color: Colors.white,
+              size: 26,
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                "انقطع الاتصال بالإنترنت\nيرجى التحقق من الشبكة",
+                textAlign: TextAlign.start,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  height: 1.3,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  return connected ;
 }

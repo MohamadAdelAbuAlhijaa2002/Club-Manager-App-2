@@ -309,9 +309,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 SlidableAction(
                                   onPressed: (context) async {
-                                    addSuspend(
+                                    bool connected = await checkInternet(
+                                        context: context);
+
+                                    if (connected) {
+                                      addSuspend(
                                         id:
                                         "${cubit.dataMembers[index]["id"]}");
+                                    }
                                   },
                                   backgroundColor: Colors.white,
                                   foregroundColor: Colors.blue,
@@ -638,7 +643,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Button(
                                   title: "إضافة",
                                   onPressed: () async {
-                                    if (_formKey.currentState!.validate()) {
+                                    bool connected = await checkInternet(
+                                        context: context);
+
+
+                                    if (_formKey.currentState!.validate() && connected) {
                                       cubit.showLoadingFun(i: true);
 
                                       // تحويل قيمة gender.text من عربي إلى إنجليزي

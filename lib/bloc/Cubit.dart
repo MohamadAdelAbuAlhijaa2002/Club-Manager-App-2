@@ -132,7 +132,7 @@ class CubitApp extends Cubit<StatesApp> {
 
 
   var dataLogin = {} ;
-  Future loginOrganization({email, password}) async {
+  Future loginOrganization({email, password , context}) async {
     print("res sssssssssssssssssssssss");
 
     Crud crud = Crud();
@@ -153,7 +153,8 @@ class CubitApp extends Cubit<StatesApp> {
       try {
         String? fcmToken = await FirebaseNotification().initNotifications();
         print("token in Cubit login : $fcmToken");
-        fcmToken ??= "not fcmToken";
+          showLoading = false ;
+
           await crud.postReqH(
               linkSaveFcmToken,
               headers: {

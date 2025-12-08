@@ -215,7 +215,11 @@ class SettingScreens extends StatelessWidget {
                                                 ),
                                                 ElevatedButton(
                                                   onPressed: () async{
-                                                    await cubit.logOutOrganization(context: context);
+                                                    bool connected = await checkInternet(
+                                                        context: context);
+                                                    if(connected) {
+                                                      await cubit.logOutOrganization(context: context);
+                                                    }
                                                   },
                                                   style: ElevatedButton.styleFrom(
                                                     backgroundColor: theme.primaryColor,

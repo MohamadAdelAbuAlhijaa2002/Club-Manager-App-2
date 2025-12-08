@@ -144,7 +144,11 @@ Future edit({context, id}) {
                               Button(
                                 title: "تعديل",
                                 onPressed: () async {
-                                  if (formKey.currentState!.validate()) {
+                                  bool connected = await checkInternet(
+                                      context: context);
+
+
+                                  if (formKey.currentState!.validate() && connected) {
                                     await cubit.editNameMembers(Members_id: id, name: name.text);
                                     Navigator.pop(context);
                                     Navigator.pop(context);
@@ -235,7 +239,9 @@ Future edit({context, id}) {
                               Button(
                                 title: "تعديل",
                                 onPressed: () async {
-                                  if (formKey.currentState!.validate()) {
+                                  bool connected = await checkInternet(
+                                      context: context);
+                                  if (formKey.currentState!.validate() && connected) {
                                     await cubit.editPhoneMembers(Members_id: id, phone: phone.text);
                                     Navigator.pop(context);
                                     Navigator.pop(context);
@@ -328,7 +334,9 @@ Future edit({context, id}) {
                               Button(
                                 title: "تعديل",
                                 onPressed: () async {
-                                  if (formKey.currentState!.validate()) {
+                                  bool connected = await checkInternet(
+                                      context: context);
+                                  if (formKey.currentState!.validate() && connected) {
                                     await cubit.editHeightMembers(Members_id: id, height: height.text);
                                     Navigator.pop(context);
                                     Navigator.pop(context);
@@ -421,7 +429,9 @@ Future edit({context, id}) {
                               Button(
                                 title: "تعديل",
                                 onPressed: () async {
-                                  if (formKey.currentState!.validate()) {
+                                  bool connected = await checkInternet(
+                                      context: context);
+                                  if (formKey.currentState!.validate() && connected) {
                                     await cubit.editWeightMembers(Members_id: id, weight: weight.text);
                                     Navigator.pop(context);
                                     Navigator.pop(context);

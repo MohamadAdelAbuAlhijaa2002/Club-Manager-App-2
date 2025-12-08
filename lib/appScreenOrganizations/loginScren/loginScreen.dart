@@ -241,45 +241,52 @@ class LoginScreen extends StatelessWidget {
                                     child: ElevatedButton(
                                       onPressed: () async {
                                         if (_formKey.currentState!.validate()) {
-                                          await cubit.loginOrganization(
-                                              email: email.text,
-                                              password: password.text);
 
-                                          if (cubit.dataLogin["status"] == "success") {
-                                            await cubit.checkSubscriptions(
-                                                context: context);
 
-                                            if (cubit.checkSubscriptionsBool) {
-                                              NavigatorMethod(
-                                                  context: context,
-                                                  screen: SectionScreen());
-                                            }
 
-                                            cubit.showLoadingFun(i: false);
-                                          } else {
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  cubit.dataLogin["msg"]??"error",
-                                                  textAlign: TextAlign.center,
-                                                  style: const TextStyle(
-                                                      color: Colors.white),
-                                                ),
-                                                backgroundColor:
-                                                Colors.purple.shade800,
-                                                behavior:
-                                                SnackBarBehavior.floating,
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                  BorderRadius.circular(10),
-                                                ),
-                                                duration:
-                                                const Duration(seconds: 3),
-                                              ),
-                                            );
-                                            cubit.showLoadingFun(i: false);
-                                          }
+                                          bool connected = await checkInternet(context: context);
+                                          print("Internet: $connected");
+                                           if(connected){
+                                             cubit.showLoadingFun(i: true);
+                                             await cubit.loginOrganization(
+                                                 email: email.text,
+                                                 password: password.text);
+
+                                             if (cubit.dataLogin["status"] == "success") {
+                                               await cubit.checkSubscriptions(
+                                                   context: context);
+
+                                               if (cubit.checkSubscriptionsBool) {
+                                                 NavigatorMethod(
+                                                     context: context,
+                                                     screen: SectionScreen());
+                                               }
+
+                                             } else {
+                                               ScaffoldMessenger.of(context)
+                                                   .showSnackBar(
+                                                 SnackBar(
+                                                   content: Text(
+                                                     cubit.dataLogin["msg"]??"error",
+                                                     textAlign: TextAlign.center,
+                                                     style: const TextStyle(
+                                                         color: Colors.white),
+                                                   ),
+                                                   backgroundColor:
+                                                   Colors.purple.shade800,
+                                                   behavior:
+                                                   SnackBarBehavior.floating,
+                                                   shape: RoundedRectangleBorder(
+                                                     borderRadius:
+                                                     BorderRadius.circular(10),
+                                                   ),
+                                                   duration:
+                                                   const Duration(seconds: 3),
+                                                 ),
+                                               );
+                                               cubit.showLoadingFun(i: false);
+                                             }
+                                           }
                                         }
                                       },
                                       style: ElevatedButton.styleFrom(
@@ -326,10 +333,7 @@ class LoginScreen extends StatelessWidget {
                     ),
 
                     if (cubit.showLoading)
-                      SpinKitCircle(
-                        color: Colors.red.shade900,
-                        size: 200.0,
-                      ),
+                      Center(child: CircularProgressIndicator())
                   ],
                 ),
               ),

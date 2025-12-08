@@ -112,39 +112,44 @@ class ForgotPasswordScreen extends StatelessWidget {
                               child: ElevatedButton(
                                 onPressed: () async {
                                   if (_formKey.currentState!.validate()) {
-                                    cubit.showLoadingFun(i: true);
-                                    await cubit.checkEmail(email: emailController.text);
+                                    bool connected = await checkInternet(context: context);
 
-                                    if (cubit.dataCheckEmail["status"] == "success") {
-                                      if (await EmailOTP.sendOTP(
-                                        email: emailController.text.trim(),
-                                      )) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text("تم إرسال رمز التحقق إلى بريدك الإلكتروني"),
-                                            backgroundColor: Colors.green,
-                                          ),
-                                        );
+                                    if(connected){
+                                      cubit.showLoadingFun(i: true);
+                                      await cubit.checkEmail(email: emailController.text);
 
-                                        cubit.showLoadingFun(i: false);
-                                        cubit.onChangeShow(1);
+                                      if (cubit.dataCheckEmail["status"] == "success") {
+                                        if (await EmailOTP.sendOTP(
+                                          email: emailController.text.trim(),
+                                        )) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text("تم إرسال رمز التحقق إلى بريدك الإلكتروني"),
+                                              backgroundColor: Colors.green,
+                                            ),
+                                          );
+
+                                          cubit.showLoadingFun(i: false);
+                                          cubit.onChangeShow(1);
+                                        } else {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text("فشل في إرسال رمز التحقق"),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                        }
                                       } else {
+                                        cubit.showLoadingFun(i: false);
                                         ScaffoldMessenger.of(context).showSnackBar(
                                           SnackBar(
-                                            content: Text("فشل في إرسال رمز التحقق"),
+                                            content: Text("${cubit.dataCheckEmail["message"]}"),
                                             backgroundColor: Colors.red,
                                           ),
                                         );
                                       }
-                                    } else {
-                                      cubit.showLoadingFun(i: false);
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text("${cubit.dataCheckEmail["message"]}"),
-                                          backgroundColor: Colors.red,
-                                        ),
-                                      );
                                     }
+
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(
@@ -253,44 +258,57 @@ class ForgotPasswordScreen extends StatelessWidget {
                               height: 48.h,
                               child: ElevatedButton(
                                 onPressed: () async {
-                                  cubit.showLoadingFun(i: true);
+                                  bool connected = await checkInternet(context: context);
 
-                                  String verificationCode =
-                                  codeControllers.map((c) => c.text).join();
+                                  if (connected) {
+                                    cubit.showLoadingFun(i: true);
 
-                                  if (verificationCode.length != 6) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('يرجى إدخال الرمز المكون من 6 أرقام بالكامل'),
-                                        backgroundColor: Colors.red,
-                                      ),
-                                    );
-                                    cubit.showLoadingFun(i: false);
-                                    return;
-                                  }
+                                    String verificationCode =
+                                    codeControllers.map((c) => c.text).join();
 
-                                  if (await EmailOTP.verifyOTP(
-                                    otp: verificationCode.trim(),
-                                  )) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text("تم التحقق من الرمز بنجاح"),
-                                        backgroundColor: Colors.green,
-                                      ),
-                                    );
+                                    if (verificationCode.length != 6) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              'يرجى إدخال الرمز المكون من 6 أرقام بالكامل'),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                      cubit.showLoadingFun(i: false);
+                                      return;
+                                    }
 
-                                    cubit.onChangeShow(2);
-                                    cubit.showLoadingFun(i: false);
-                                  } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text("رمز التحقق غير صحيح"),
-                                        backgroundColor: Colors.red,
-                                      ),
-                                    );
-                                    cubit.showLoadingFun(i: false);
+                                    if (await EmailOTP.verifyOTP(
+                                      otp: verificationCode.trim(),
+                                    )) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              "تم التحقق من الرمز بنجاح"),
+                                          backgroundColor: Colors.green,
+                                        ),
+                                      );
+
+                                      cubit.onChangeShow(2);
+                                      cubit.showLoadingFun(i: false);
+                                    } else {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text("رمز التحقق غير صحيح"),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                      cubit.showLoadingFun(i: false);
+                                    }
                                   }
                                 },
+
+
+
+
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.purple.shade800,
                                   elevation: 0,
@@ -321,26 +339,34 @@ class ForgotPasswordScreen extends StatelessWidget {
                                 ),
                                 GestureDetector(
                                   onTap: () async {
-                                    if (_formKey2.currentState!.validate()) {
-                                      cubit.showLoadingFun(i: true);
 
-                                      if (await EmailOTP.sendOTP(
-                                        email: emailController.text.trim(),
-                                      )) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(
-                                            content: Text("تمت إعادة إرسال الرمز"),
-                                          ),
-                                        );
-                                        cubit.showLoadingFun(i: false);
-                                      } else {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(
-                                            content: Text("فشل في إعادة إرسال الرمز"),
-                                          ),
-                                        );
-                                        cubit.showLoadingFun(i: false);
-                                      }
+                                      bool connected = await checkInternet(context: context);
+
+                                      if (connected) {
+                                        cubit.showLoadingFun(i: true);
+
+                                        if (await EmailOTP.sendOTP(
+                                          email: emailController.text.trim(),
+                                        )) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                  "تمت إعادة إرسال الرمز"),
+                                            ),
+                                          );
+                                          cubit.showLoadingFun(i: false);
+                                        } else {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                  "فشل في إعادة إرسال الرمز"),
+                                            ),
+                                          );
+                                          cubit.showLoadingFun(i: false);
+                                        }
+
                                     }
                                   },
                                   child: Text(
@@ -425,35 +451,43 @@ class ForgotPasswordScreen extends StatelessWidget {
                                 child: ElevatedButton(
                                   onPressed: () async {
                                     if (_formKey3.currentState!.validate()) {
-                                      cubit.showLoadingFun(i: true);
-                                      await cubit.forgotPassword(
-                                        password: password.text,
-                                        email: emailController.text,
-                                      );
+                                      bool connected = await checkInternet(
+                                          context: context);
 
-                                      if (cubit.dataForgotPassword["status"] ==
-                                          "success") {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                                "${cubit.dataForgotPassword["message"]}"),
-                                            backgroundColor: Colors.green,
-                                          ),
+                                      if (connected) {
+                                        cubit.showLoadingFun(i: true);
+                                        await cubit.forgotPassword(
+                                          password: password.text,
+                                          email: emailController.text,
                                         );
-                                        cubit.onChangeShow(0);
-                                        cubit.showLoadingFun(i: false);
-                                        Navigator.pop(context);
-                                      } else {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                                "${cubit.dataForgotPassword["message"]}"),
-                                            backgroundColor: Colors.red,
-                                          ),
-                                        );
-                                        cubit.showLoadingFun(i: false);
+
+                                        if (cubit
+                                            .dataForgotPassword["status"] ==
+                                            "success") {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                  "${cubit
+                                                      .dataForgotPassword["message"]}"),
+                                              backgroundColor: Colors.green,
+                                            ),
+                                          );
+                                          cubit.onChangeShow(0);
+                                          cubit.showLoadingFun(i: false);
+                                          Navigator.pop(context);
+                                        } else {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                  "${cubit
+                                                      .dataForgotPassword["message"]}"),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                          cubit.showLoadingFun(i: false);
+                                        }
                                       }
                                     }
                                   },
@@ -486,10 +520,7 @@ class ForgotPasswordScreen extends StatelessWidget {
 
                 /// تحميل أثناء العمليات
                 if (cubit.showLoading)
-                  SpinKitCircle(
-                    color: Colors.red.shade900,
-                    size: 200.0,
-                  ),
+                  Center(child: CircularProgressIndicator())
               ],
             ),
           );
