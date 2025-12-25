@@ -29,6 +29,8 @@ class SettingScreens extends StatelessWidget {
 
           return Scaffold(
             backgroundColor: Colors.grey.shade50,
+            appBar: AppBar(),
+
             body: Stack(
               children: [
                 // تصميم الخلفية

@@ -11,7 +11,8 @@ import '../../bloc/states.dart';
 class SubscriptionsScreen extends StatefulWidget {
   final int id_section;
 
-  SubscriptionsScreen({super.key, required this.id_section});
+  const SubscriptionsScreen({super.key, required this.id_section});
+
   @override
   State<SubscriptionsScreen> createState() => _SubscriptionsScreenState();
 }
@@ -19,11 +20,9 @@ class SubscriptionsScreen extends StatefulWidget {
 class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
   late int id_section;
 
-
   @override
   void initState() {
     super.initState();
-    // تحديث البيانات عند الدخول
     id_section = widget.id_section;
 
     final cubit = CubitApp.get(context);
@@ -33,6 +32,8 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return BlocConsumer<CubitApp, StatesApp>(
       listener: (context, state) {
         if (state is AddSubscriptionsMembersState) {
@@ -59,39 +60,36 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                 ),
               ),
               centerTitle: true,
-              automaticallyImplyLeading: false,
-              backgroundColor: Theme.of(context).primaryColor,
-              elevation: 8,
+              backgroundColor: theme.primaryColor,
+              elevation: 6,
+              //automaticallyImplyLeading: false,
               actions: [
                 IconButton(
                   onPressed: () {
                     NavigatorMethod(
                         context: context, screen: const SubscriptionsType());
                   },
-                  icon: const Icon(
-                    Icons.subscriptions_outlined,
-                    color: Colors.white,
-                  ),
+                  icon: const Icon(Icons.subscriptions_outlined, color: Colors.white),
                 ),
               ],
               bottom: TabBar(
                 indicatorColor: Colors.white,
                 unselectedLabelColor: Colors.white.withOpacity(0.6),
                 labelStyle: TextStyle(
-                  fontSize: 14.sp,
+                  fontSize: 8.sp, // تقليل الحجم
                   fontWeight: FontWeight.bold,
                 ),
                 tabs: const [
                   Tab(
-                    icon: Icon(Icons.check_circle, color: Colors.green),
+                    icon: Icon(Icons.check_circle, color: Colors.green, size: 20), // تقليل حجم الأيقونة
                     text: 'نشط',
                   ),
                   Tab(
-                    icon: Icon(Icons.pause_circle, color: Colors.orange),
+                    icon: Icon(Icons.pause_circle, color: Colors.orange, size: 20),
                     text: 'غير نشط',
                   ),
                   Tab(
-                    icon: Icon(Icons.cancel, color: Colors.grey),
+                    icon: Icon(Icons.cancel, color: Colors.grey, size: 20),
                     text: 'غير مشترك',
                   ),
                 ],

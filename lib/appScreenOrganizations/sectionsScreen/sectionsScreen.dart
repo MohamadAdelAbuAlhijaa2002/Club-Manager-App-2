@@ -244,178 +244,130 @@ class _SectionScreenState extends State<SectionScreen> {
                   ),
                 ),
               )
-                  : AnimationLimiter(
-                child: ListView.builder(
-                  padding: EdgeInsets.all(_w / 30),
-                  physics: const BouncingScrollPhysics(
-                    parent: AlwaysScrollableScrollPhysics(),
-                  ),
-                  itemCount: cubit.indexSection,
-                  itemBuilder: (BuildContext context, int index) {
-                    return AnimationConfiguration.staggeredList(
-                      position: index,
-                      delay: const Duration(milliseconds: 100),
-                      child: SlideAnimation(
-                        duration: const Duration(milliseconds: 1500),
-                        curve: Curves.fastLinearToSlowEaseIn,
-                        horizontalOffset: 30,
-                        verticalOffset: 50.0,
-                        child: FlipAnimation(
-                          duration: const Duration(milliseconds: 2000),
-                          curve: Curves.fastLinearToSlowEaseIn,
-                          flipAxis: FlipAxis.y,
-                          child: Container(
-                            margin: EdgeInsets.only(bottom: _w / 20),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(15),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 20,
-                                  spreadRadius: 5,
-                                ),
-                              ],
+                  : ListView.builder(
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                physics: const BouncingScrollPhysics(),
+                itemCount: cubit.indexSection,
+                itemBuilder: (context, index) {
+                  final section = cubit.dataSection[index];
+                  return Container(
+                    margin: EdgeInsets.only(bottom: 16.h),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 15,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(15),
+                      onTap: () {
+                        NavigatorMethod(
+                            context: context,
+                            screen: HomePage(id_section: section["id"]));
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.all(16.w),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.folder,
+                              size: 28.sp,
+                              color: theme.primaryColor,
                             ),
-                            child: Slidable(
-                              key: ValueKey(index),
-                              startActionPane: ActionPane(
-                                motion: const BehindMotion(),
-                                extentRatio: 0.5,
+                            SizedBox(width: 16.w),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  SlidableAction(
-                                    onPressed: (context) {
-                                      editSection(context: context , id: cubit.dataSection[index]["id"]);
-                                    },
-                                    backgroundColor: Colors.white,
-                                    foregroundColor: theme.primaryColor,
-                                    icon: Icons.edit,
-                                    label: 'تعديل',
-                                    borderRadius: BorderRadius.circular(15),
+                                  Text(
+                                    section["title"],
+                                    style: TextStyle(
+                                      fontSize: 16.sp,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  SizedBox(height: 4.h),
+                                  Text(
+                                    section["description"],
+                                    style: TextStyle(
+                                      fontSize: 14.sp,
+                                      color: Colors.black54,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
                               ),
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(15),
-                                onTap: () {
-                                  print(cubit.dataSection[index]["id"],);
-                                  NavigatorMethod(context: context, screen: HomePage(id_section:  cubit.dataSection[index]["id"]));
-                                },
-
-                                child: Padding(
-                                  padding: EdgeInsets.all(16.w),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.person,
-                                        size: 30.sp,
-                                        color: theme.primaryColor,
-                                      ),
-                                      SizedBox(width: 16.w),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              cubit.dataSection[index]
-                                              ["title"],
-                                              style: TextStyle(
-                                                fontSize: 16.sp,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                              maxLines: 1,
-                                              overflow:
-                                              TextOverflow.ellipsis,
-                                            ),
-                                            Text(
-                                              cubit.dataSection[index]
-                                              ["description"],
-                                              style: TextStyle(
-                                                fontSize: 14.sp,
-                                                fontWeight: FontWeight.w500,
-                                                color: Colors.black54
-                                              ),
-                                              maxLines: 1,
-                                              overflow:
-                                              TextOverflow.ellipsis,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      IconButton(
-                                        icon: Icon(
-                                          Icons.info_outline,
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                Icons.info_outline,
+                                color: theme.primaryColor,
+                                size: 24.sp,
+                              ),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    title: Center(
+                                      child: Text(
+                                        "تفاصيل القسم",
+                                        style: TextStyle(
                                           color: theme.primaryColor,
-                                          size: 24.sp,
+                                          fontWeight: FontWeight.bold,
                                         ),
-                                        onPressed: () {
-                                          showDialog(
-                                            context: context,
-                                            builder:
-                                                (BuildContext context) {
-                                              return AlertDialog(
-                                                shape:
-                                                RoundedRectangleBorder(
-                                                  borderRadius:
-                                                  BorderRadius.circular(
-                                                      20),
-                                                ),
-                                                title: Center(
-                                                  child: Text(
-                                                    "تفاصيل القسم",
-                                                    style: TextStyle(
-                                                      color: theme
-                                                          .primaryColor,
-                                                    ),
-                                                  ),
-                                                ),
-                                                content: Column(
-                                                  mainAxisSize:
-                                                  MainAxisSize.min,
-                                                  crossAxisAlignment:
-                                                  CrossAxisAlignment
-                                                      .start,
-                                                  children: [
-                                                    _buildDetailRow(label:":العنوان",      value:cubit.dataSection[index]["title"].toString()),
-                                                    _buildDetailRow(label:":التفاصيل",     value:cubit.dataSection[index]["description"].toString()),
-                                                    _buildDetailRow(label:":تاريخ الإضافة", value:cubit.dataSection[index]["create_at"].toString()),
-                                                    _buildDetailRow(label:":اسم المنشئ",   value:cubit.dataSection[index]["manager_name"].toString()),
-                                                    _buildDetailRow(label:":اسم المسؤول عن القسم",   value:cubit.dataSection[index]["responsible_name"].toString()),
-                                                    _buildDetailRow(label:":البريد الالكتروني الخاص بالمنشئ",  value: cubit.dataSection[index]["manager_email"].toString().replaceAll("\n", "\n"), isColumn: true),
-
-                                                  ],
-                                                ),
-                                                actions: [
-                                                  TextButton(
-                                                    onPressed: () =>
-                                                        Navigator.pop(
-                                                            context),
-                                                    child: Text(
-                                                      "إغلاق",
-                                                      style: TextStyle(
-                                                        color: theme
-                                                            .primaryColor,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              );
-                                            },
-                                          );
-                                        },
+                                      ),
+                                    ),
+                                    content: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        _buildDetailRow(
+                                            label: ":العنوان",
+                                            value: section["title"]),
+                                        _buildDetailRow(
+                                            label: ":التفاصيل",
+                                            value: section["description"]),
+                                        _buildDetailRow(
+                                            label: ":تاريخ الإضافة",
+                                            value: section["create_at"]),
+                                        _buildDetailRow(
+                                            label: ":اسم المنشئ",
+                                            value: section["manager_name"]),
+                                        _buildDetailRow(
+                                            label: ":اسم المسؤول عن القسم",
+                                            value: section["responsible_name"]),
+                                      ],
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text(
+                                          "إغلاق",
+                                          style: TextStyle(color: theme.primaryColor),
+                                        ),
                                       ),
                                     ],
                                   ),
-                                ),
-                              ),
-                            ),
-                          ),
+                                );
+                              },
+                            )
+                          ],
                         ),
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
               ),
             ),
 

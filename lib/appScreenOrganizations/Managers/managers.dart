@@ -67,7 +67,7 @@ class _ManagersState extends State<Managers> {
             centerTitle: true,
             elevation: 0,
             backgroundColor: theme.primaryColor,
-            automaticallyImplyLeading: false,
+            //automaticallyImplyLeading: false,
           ),
           body: SafeArea(
             child: cubit.dataManagers.isEmpty

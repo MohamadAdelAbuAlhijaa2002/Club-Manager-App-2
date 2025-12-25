@@ -16,7 +16,7 @@ import '../loginScren/loginScreen.dart';
 class HomePage extends StatefulWidget {
   final int id_section;
 
-  HomePage({super.key, required this.id_section});
+  const HomePage({super.key, required this.id_section});
 
   @override
   HomePageState createState() => HomePageState();
@@ -30,7 +30,7 @@ class HomePageState extends State<HomePage> {
   final List<IconData> listOfIcons = [
     Icons.home_rounded,
     Icons.subscriptions_rounded,
-    FontAwesomeIcons.pauseCircle // المعلق
+    FontAwesomeIcons.pauseCircle,
   ];
 
   final List<String> listOfStrings = [
@@ -44,10 +44,9 @@ class HomePageState extends State<HomePage> {
     super.initState();
     id_section = widget.id_section;
 
-    // تهيئة الشاشات مع استخدام id_section
     screens = [
       HomeScreen(id_section: id_section),
-      SubscriptionsScreen(id_section:  id_section),
+      SubscriptionsScreen(id_section: id_section),
       SuspendScreen(id_section: id_section),
     ];
   }
@@ -58,10 +57,12 @@ class HomePageState extends State<HomePage> {
     final theme = Theme.of(context);
 
     return BlocProvider(
-      create: (context) => CubitApp()..checkSubscriptions(context: context)..checkTokenData(),
+      create: (context) => CubitApp()
+        ..checkSubscriptions(context: context)
+        ..checkTokenData(),
       child: BlocConsumer<CubitApp, StatesApp>(
-        listener: (BuildContext context, StatesApp state) {},
-        builder: (BuildContext context, StatesApp state) {
+        listener: (context, state) {},
+        builder: (context, state) {
           final cubit = CubitApp.get(context);
 
           return Scaffold(
@@ -71,82 +72,78 @@ class HomePageState extends State<HomePage> {
               children: screens,
             ),
 
-
+            // Bottom Navigation Bar مرتب وأنيق
             bottomNavigationBar: Container(
-              margin: EdgeInsets.symmetric(horizontal: displayWidth * 0.05, vertical: displayWidth * 0.02),
-              height: displayWidth * 0.16,
+              margin: EdgeInsets.symmetric(
+                  horizontal: displayWidth * 0.15, vertical: displayWidth * 0.02),
+              height: displayWidth * 0.10, // أصغر حجم ممكن مع وضوح الأيقونات
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(30), // حواف مستديرة أكثر
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black12,
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: List.generate(listOfIcons.length, (index) {
                   bool isSelected = currentIndex == index;
-                  return Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        setState(() {
-                          currentIndex = index;
-                          HapticFeedback.lightImpact();
-                          CubitApp.get(context).checkTokenData();
-                          if(!CubitApp.get(context).dataCheckToken){
-                            deleteTokenOrganization();
-                            NavigatorMethod(context: context, screen: LoginScreen());
-                          }else if (cubit.checkSubscriptionsBool) {
-                            if (index == 0) {
-                              CubitApp.get(context).getMembersData(section_id: id_section);
-                            } else if (index == 1) {
-                              CubitApp.get(context).getSubscriptionsMember(section_id: id_section);
-                              CubitApp.get(context).getSubscriptionsType();
-                            } else {
-                              CubitApp.get(context).getSuspendMembersData(section_id: id_section);
-                            }
-                          } else {
-                            NavigatorMethod(context: context, screen: MassageScreens());
-                          }
+                  return InkWell(
+                    borderRadius: BorderRadius.circular(30),
+                    onTap: () async {
+                      setState(() {
+                        currentIndex = index;
+                      });
+                      HapticFeedback.lightImpact();
 
-                          print("index : $index");
-
-
-
-
-
-                        });
-                      },
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            listOfIcons[index],
-                            size: displayWidth * 0.065,
-                            color: isSelected ?  Colors.purple.shade800 : Colors.grey.shade500,
+                      await CubitApp.get(context).checkTokenData();
+                      if (!CubitApp.get(context).dataCheckToken) {
+                        await deleteTokenOrganization();
+                        NavigatorMethod(context: context, screen: LoginScreen());
+                      } else if (CubitApp.get(context).checkSubscriptionsBool) {
+                        if (index == 0) {
+                          CubitApp.get(context).getMembersData(section_id: id_section);
+                        } else if (index == 1) {
+                          CubitApp.get(context).getSubscriptionsMember(section_id: id_section);
+                          CubitApp.get(context).getSubscriptionsType();
+                        } else {
+                          CubitApp.get(context).getSuspendMembersData(section_id: id_section);
+                        }
+                      } else {
+                        NavigatorMethod(context: context, screen: MassageScreens());
+                      }
+                    },
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          listOfIcons[index],
+                          size: displayWidth * 0.05, // حجم أصغر
+                          color: isSelected
+                              ? Colors.purple.shade800
+                              : Colors.grey.shade500,
+                        ),
+                        const SizedBox(height: 2), // مسافة أقل بين الأيقونة والنص
+                        Text(
+                          listOfStrings[index],
+                          style: TextStyle(
+                            fontSize: displayWidth * 0.022, // حجم نص أصغر
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                            color: isSelected
+                                ? Colors.purple.shade800
+                                : Colors.grey.shade500,
                           ),
-                          const SizedBox(height: 5),
-                          Text(
-                            listOfStrings[index],
-                            style: TextStyle(
-                              fontSize: displayWidth * 0.028,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                              color: isSelected ?  Colors.purple.shade800 : Colors.grey.shade500,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   );
                 }),
               ),
             ),
-
-
-
           );
         },
       ),

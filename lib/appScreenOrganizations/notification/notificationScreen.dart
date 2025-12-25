@@ -57,7 +57,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
             centerTitle: true,
             elevation: 0,
             backgroundColor: theme.primaryColor,
-            automaticallyImplyLeading: false,
+            //automaticallyImplyLeading: false,
           ),
           body: SafeArea(
             child: cubit.dataNotification.isEmpty

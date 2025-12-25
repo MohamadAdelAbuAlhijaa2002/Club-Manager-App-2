@@ -102,12 +102,12 @@ class _SuspendScreenState extends State<SuspendScreen> {
               foregroundColor: Colors.white,
               backgroundColor: Theme.of(context).primaryColor,
               elevation: 8,
-              automaticallyImplyLeading: false,
+              //automaticallyImplyLeading: false,
               bottom: TabBar(
                 indicatorColor: Colors.white,
                 unselectedLabelColor: Colors.white.withOpacity(0.6),
                 labelStyle: TextStyle(
-                  fontSize: 14.sp,
+                  fontSize: 8.sp,
                   fontWeight: FontWeight.bold,
                 ),
                 tabs: const [
